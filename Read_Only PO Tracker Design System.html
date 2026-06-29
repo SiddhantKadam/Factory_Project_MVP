@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PO Tracker — Design System</title>
+<style>
+  /* ============================================================
+     DESIGN TOKENS
+     ============================================================ */
+  :root {
+    /* Surfaces & neutrals */
+    --bg:              #F4F4F2;
+    --surface:         #FFFFFF;
+    --surface-sunken:  #FAFAF8;
+    --border:          #DEDEDA;
+    --border-strong:   #C9C9C3;
+
+    /* Text */
+    --text-1:          #1A1A17;
+    --text-2:          #57564F;
+    --text-3:          #84837C;
+
+    /* Action */
+    --primary:         #C2410C;
+    --primary-hover:   #9A330A;
+    --on-primary:      #FFFFFF;
+    --link:            #1D4ED8;
+    --focus:           rgba(194, 65, 12, 0.35);
+
+    /* Status — text */
+    --st-draft-fg:     #4B5563;  --st-draft-bg:    #F0F0EE;
+    --st-sub-fg:       #1D4ED8;  --st-sub-bg:      #E9F0FF;
+    --st-rev-fg:       #B45309;  --st-rev-bg:      #FBF1DD;
+    --st-app-fg:       #15803D;  --st-app-bg:      #E6F6EC;
+    --st-rej-fg:       #B91C1C;  --st-rej-bg:      #FCECEC;
+    --st-rrq-fg:       #C2410C;  --st-rrq-bg:      #FCEEE4;
+
+    /* Alert tints */
+    --al-info-bg:      #E9F0FF;  --al-info-bd:  #1D4ED8;
+    --al-ok-bg:        #E6F6EC;  --al-ok-bd:    #15803D;
+    --al-warn-bg:      #FBF1DD;  --al-warn-bd:  #B45309;
+    --al-err-bg:       #FCECEC;  --al-err-bd:   #B91C1C;
+
+    /* Type */
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Roboto Mono", monospace;
+
+    /* Spacing grid */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --s8: 32px;
+
+    /* Shape */
+    --r-control: 6px;
+    --r-card:    8px;
+    --shadow-card: 0 1px 2px rgba(26, 26, 23, 0.05);
+  }
+
+  /* ============================================================
+     RESET / BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .num  { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ============================================================
+     PAGE LAYOUT
+     ============================================================ */
+  .page { max-width: 1200px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  .doc-head { margin-bottom: 48px; }
+  .doc-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  .doc-title { font-size: 26px; line-height: 1.2; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .doc-sub   { font-size: 16px; color: var(--text-2); margin: 0; max-width: 60ch; }
+
+  .section { margin-top: 56px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--st-rrq-bg);
+    border-radius: 4px;
+    padding: 2px 8px;
+    line-height: 1.4;
+  }
+  .section-title { font-size: 20px; font-weight: 600; margin: 0; }
+  .section-note  { font-size: 13px; color: var(--text-2); margin-left: auto; }
+
+  .sub-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+    font-weight: 600;
+    margin: 28px 0 12px;
+  }
+  .sub-label:first-child { margin-top: 0; }
+
+  /* ============================================================
+     CARD WRAPPER (used to frame component demos)
+     ============================================================ */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+  }
+
+  /* ============================================================
+     1. COLOR SWATCHES
+     ============================================================ */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .swatch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .swatch-chip { height: 68px; border-bottom: 1px solid var(--border); }
+  .swatch-meta { padding: 10px 12px; }
+  .swatch-role { font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .swatch-hex  { font-family: var(--mono); font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .status-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 14px 16px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .status-hexes { font-family: var(--mono); font-size: 11px; color: var(--text-3); text-align: right; line-height: 1.5; }
+
+  /* ============================================================
+     STATUS PILL
+     ============================================================ */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+  .pill.draft { color: var(--st-draft-fg); background: var(--st-draft-bg); }
+  .pill.sub   { color: var(--st-sub-fg);   background: var(--st-sub-bg); }
+  .pill.rev   { color: var(--st-rev-fg);   background: var(--st-rev-bg); }
+  .pill.app   { color: var(--st-app-fg);   background: var(--st-app-bg); }
+  .pill.rej   { color: var(--st-rej-fg);   background: var(--st-rej-bg); }
+  .pill.rrq   { color: var(--st-rrq-fg);   background: var(--st-rrq-bg); }
+
+  /* ============================================================
+     2. TYPOGRAPHY
+     ============================================================ */
+  .type-row { display: flex; align-items: baseline; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-spec { font-family: var(--mono); font-size: 12px; color: var(--text-3); width: 150px; flex: none; }
+  .t-h1 { font-size: 26px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
+  .t-h2 { font-size: 20px; font-weight: 600; line-height: 1.25; }
+  .t-h3 { font-size: 16px; font-weight: 600; line-height: 1.4; }
+  .t-body { font-size: 14px; font-weight: 400; }
+  .t-small { font-size: 13px; font-weight: 400; color: var(--text-2); }
+  .t-micro { font-size: 12px; font-weight: 400; color: var(--text-3); }
+
+  /* ============================================================
+     3. BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 10px 16px;
+    border-radius: var(--r-control);
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); }
+  .btn-primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .btn-secondary { background: var(--surface); color: var(--text-1); border-color: var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface-sunken); border-color: var(--text-3); }
+  .btn-ghost { background: transparent; color: var(--text-1); border-color: transparent; }
+  .btn-ghost:hover { background: var(--st-draft-bg); }
+  .btn-destructive { background: var(--st-rej-fg); color: #fff; border-color: var(--st-rej-fg); }
+  .btn-destructive:hover { background: #991717; border-color: #991717; }
+  .btn:disabled, .btn[aria-disabled="true"] {
+    opacity: 1; cursor: not-allowed;
+    background: var(--surface-sunken); color: var(--text-3); border-color: var(--border);
+  }
+  .btn-ghost:disabled { background: transparent; }
+
+  .btn-matrix { display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 16px 20px; align-items: center; }
+  .btn-matrix .mh { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); font-weight: 600; }
+  .btn-matrix .rl { font-family: var(--mono); font-size: 12px; color: var(--text-2); font-weight: 600; }
+
+  /* ============================================================
+     4. FORM CONTROLS
+     ============================================================ */
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px 32px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .field .req { color: var(--primary); }
+  .field .help { font-size: 12px; color: var(--text-2); }
+  .field .err  { font-size: 12px; color: var(--st-rej-fg); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+
+  .input, .select, .textarea {
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text-1);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-control);
+    padding: 9px 12px;
+    width: 100%;
+    line-height: 1.4;
+  }
+  .input.num-input { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .input::placeholder, .textarea::placeholder { color: var(--text-3); }
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus);
+  }
+  .textarea { min-height: 88px; resize: vertical; }
+  .select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%2357564F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+  }
+  .field.has-error .input,
+  .field.has-error .select,
+  .field.has-error .textarea { border-color: var(--st-rej-fg); }
+  .field.has-error .input:focus { box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.22); }
+
+  .check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .check input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check .box {
+    width: 18px; height: 18px; flex: none; margin-top: 1px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    background: var(--surface);
+    display: grid; place-items: center;
+    transition: background .12s, border-color .12s;
+  }
+  .check .box svg { opacity: 0; }
+  .check input:checked + .box { background: var(--primary); border-color: var(--primary); }
+  .check input:checked + .box svg { opacity: 1; }
+  .check input:focus-visible + .box { box-shadow: 0 0 0 3px var(--focus); }
+  .check .ctext { font-size: 14px; }
+  .check .csub  { font-size: 12px; color: var(--text-2); }
+
+  /* ============================================================
+     6. TABLE / TABS / BREADCRUMB / STEPPER
+     ============================================================ */
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+  .breadcrumb a { color: var(--link); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { color: var(--text-3); }
+  .breadcrumb .current { color: var(--text-1); font-weight: 600; font-family: var(--mono); }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+  .tab {
+    font-size: 14px; font-weight: 600; color: var(--text-2);
+    padding: 10px 14px; border: 0; background: transparent; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text-1); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab .count { font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-left: 6px; }
+
+  table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.data thead th {
+    background: var(--surface-sunken);
+    text-align: left;
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-2);
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  table.data th.r, table.data td.r { text-align: right; }
+  table.data tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-1);
+    vertical-align: middle;
+  }
+  table.data tbody tr:hover td { background: var(--surface-sunken); }
+  table.data td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  table.data .po { font-family: var(--mono); font-weight: 600; color: var(--text-1); }
+  table.data .meta { font-size: 12px; color: var(--text-3); font-family: var(--mono); }
+
+  /* Stepper */
+  .stepper { display: flex; align-items: flex-start; }
+  .step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; text-align: center; }
+  .step .line { position: absolute; top: 15px; height: 2px; background: var(--border-strong); left: -50%; right: 50%; z-index: 0; }
+  .step:first-child .line { display: none; }
+  .step.done .line, .step.active .line { background: var(--primary); }
+  .step .dot {
+    width: 32px; height: 32px; border-radius: 999px; z-index: 1;
+    display: grid; place-items: center;
+    background: var(--surface); border: 2px solid var(--border-strong);
+    font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-3);
+  }
+  .step.done .dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .step.active .dot { background: var(--surface); border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 4px var(--st-rrq-bg); }
+  .step .slabel { font-size: 13px; font-weight: 600; margin-top: 10px; color: var(--text-1); }
+  .step .ssub { font-size: 12px; color: var(--text-3); margin-top: 2px; font-family: var(--mono); }
+  .step.upcoming .slabel { color: var(--text-3); }
+
+  /* ============================================================
+     7. TIMELINE
+     ============================================================ */
+  .timeline { position: relative; padding-left: 4px; }
+  .tl-item { position: relative; padding: 0 0 22px 26px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before { content: ""; position: absolute; left: 5px; top: 4px; bottom: -4px; width: 2px; background: var(--border-strong); }
+  .tl-item:last-child::before { display: none; }
+  .tl-dot { position: absolute; left: 0; top: 3px; width: 12px; height: 12px; border-radius: 999px; background: var(--surface); border: 2px solid var(--border-strong); z-index: 1; }
+  .tl-item.is-now .tl-dot { background: var(--primary); border-color: var(--primary); }
+  .tl-item.is-done .tl-dot { background: var(--st-app-fg); border-color: var(--st-app-fg); }
+  .tl-label { font-size: 14px; font-weight: 600; }
+  .tl-by { font-size: 13px; color: var(--text-2); }
+  .tl-time { font-size: 12px; color: var(--text-3); font-family: var(--mono); margin-top: 2px; }
+
+  /* ============================================================
+     8. EMPTY STATE / ALERTS
+     ============================================================ */
+  .empty {
+    text-align: center; padding: 40px 24px;
+    border: 1px dashed var(--border-strong); border-radius: var(--r-card);
+    background: var(--surface-sunken);
+  }
+  .empty .ic { width: 44px; height: 44px; margin: 0 auto 14px; color: var(--text-3); }
+  .empty h4 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .empty p { font-size: 14px; color: var(--text-2); margin: 0 auto 18px; max-width: 42ch; }
+
+  .alert {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; border-radius: var(--r-control);
+    border: 1px solid var(--border); border-left-width: 4px;
+    font-size: 14px;
+  }
+  .alert .a-ic { flex: none; width: 20px; height: 20px; margin-top: 1px; }
+  .alert .a-title { font-weight: 600; margin: 0 0 2px; }
+  .alert .a-body { color: var(--text-2); margin: 0; font-size: 13px; }
+  .alert.info  { background: var(--al-info-bg); border-color: #C7D9FF; border-left-color: var(--al-info-bd); }
+  .alert.info .a-ic, .alert.info .a-title { color: var(--al-info-bd); }
+  .alert.ok    { background: var(--al-ok-bg); border-color: #BFE6CC; border-left-color: var(--al-ok-bd); }
+  .alert.ok .a-ic, .alert.ok .a-title { color: var(--al-ok-bd); }
+  .alert.warn  { background: var(--al-warn-bg); border-color: #EBD9AE; border-left-color: var(--al-warn-bd); }
+  .alert.warn .a-ic, .alert.warn .a-title { color: var(--al-warn-bd); }
+  .alert.err   { background: var(--al-err-bg); border-color: #EDC9C9; border-left-color: var(--al-err-bd); }
+  .alert.err .a-ic, .alert.err .a-title { color: var(--al-err-bd); }
+
+  /* ============================================================
+     9. APP SHELL MOCKUP
+     ============================================================ */
+  .shell-frame {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-card);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    background: var(--bg);
+  }
+  .shell { display: grid; grid-template-columns: 232px 1fr; height: 560px; }
+
+  .sidebar { background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 16px; border-bottom: 1px solid var(--border); }
+  .sb-logo { width: 30px; height: 30px; border-radius: 6px; background: var(--primary); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px; font-family: var(--mono); flex: none; }
+  .sb-name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .sb-name small { display: block; font-weight: 500; font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; text-transform: uppercase; font-family: var(--mono); }
+  .sb-nav { padding: 12px 12px; overflow-y: auto; flex: 1; }
+  .sb-section { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); font-weight: 600; padding: 14px 10px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 10px; border-radius: var(--r-control);
+    font-size: 14px; font-weight: 500; color: var(--text-2);
+    text-decoration: none; cursor: pointer; position: relative;
+  }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-item:hover { background: var(--surface-sunken); color: var(--text-1); }
+  .nav-item.active { background: var(--st-rrq-bg); color: var(--primary); font-weight: 600; }
+  .nav-item .badge { margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 600; background: var(--st-rej-bg); color: var(--st-rej-fg); border-radius: 999px; padding: 1px 7px; }
+
+  .main-col { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .topbar .tb-titles { min-width: 0; }
+  .topbar h1 { font-size: 20px; font-weight: 600; margin: 0; line-height: 1.2; }
+  .topbar .tb-crumb { font-size: 12px; color: var(--text-2); display: flex; gap: 6px; align-items: center; margin-bottom: 3px; }
+  .topbar .tb-crumb a { color: var(--link); text-decoration: none; }
+  .topbar .tb-crumb .sep { color: var(--text-3); }
+  .tb-spacer { flex: 1; }
+  .tb-search {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border-strong); border-radius: var(--r-control);
+    padding: 7px 10px; width: 240px; color: var(--text-3); background: var(--surface-sunken); font-size: 13px;
+  }
+  .tb-icon-btn { width: 36px; height: 36px; border-radius: var(--r-control); border: 1px solid var(--border); background: #fff; display: grid; place-items: center; color: var(--text-2); cursor: pointer; position: relative; }
+  .tb-icon-btn:hover { background: var(--surface-sunken); color: var(--text-1); }
+  .tb-icon-btn .ping { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 999px; background: var(--primary); border: 1.5px solid #fff; }
+  .avatar-menu { display: flex; align-items: center; gap: 9px; padding: 4px 8px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+  .avatar-menu:hover { background: var(--surface-sunken); }
+  .avatar { width: 30px; height: 30px; border-radius: 999px; background: #3C3A33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600; font-family: var(--mono); flex: none; }
+  .avatar-menu .who { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .avatar-menu .who small { display: block; font-weight: 500; color: var(--text-3); font-size: 11px; }
+
+  .main-body { padding: 24px; overflow-y: auto; flex: 1; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi { background: #fff; border: 1px solid var(--border); border-radius: var(--r-card); padding: 14px 16px; }
+  .kpi .k-label { font-size: 12px; color: var(--text-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi .k-val { font-size: 26px; font-weight: 600; font-family: var(--mono); font-variant-numeric: tabular-nums; margin-top: 4px; letter-spacing: -0.02em; }
+  .kpi .k-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; font-family: var(--mono); }
+  .panel-card { background: #fff; border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; }
+  .panel-card .pc-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .panel-card .pc-head h3 { font-size: 15px; font-weight: 600; margin: 0; }
+
+  .util-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  /* responsive guard */
+  @media (max-width: 760px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .btn-matrix { grid-template-columns: 90px repeat(3, 1fr); gap: 12px; }
+    .kpi-row { grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============================ HEAD ============================ -->
+  <header class="doc-head">
+    <p class="doc-eyebrow">PO Tracker · Internal Tooling</p>
+    <h1 class="doc-title">Design System &amp; Component Sheet</h1>
+    <p class="doc-sub">A high-contrast, light-theme system tuned for bright shop-floor monitors. Utility over polish: one burnt-orange accent, neutral surfaces, generous legible type, and dense-but-grouped data. All tokens below are CSS variables, ready to reuse.</p>
+  </header>
+
+  <!-- ============================ 1. COLOR ============================ -->
+  <section class="section" id="color">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Colour Tokens</h2>
+      <span class="section-note">Defined as CSS custom properties on <span class="mono">:root</span></span>
+    </div>
+
+    <div class="sub-label">Surfaces &amp; Text</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-chip" style="background:#F4F4F2"></div><div class="swatch-meta"><div class="swatch-role">App background</div><div class="swatch-hex">#F4F4F2 · --bg</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#FFFFFF"></div><div class="swatch-meta"><div class="swatch-role">Surface / card</div><div class="swatch-hex">#FFFFFF · --surface</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#FAFAF8"></div><div class="swatch-meta"><div class="swatch-role">Surface sunken</div><div class="swatch-hex">#FAFAF8 · --surface-sunken</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#DEDEDA"></div><div class="swatch-meta"><div class="swatch-role">Border</div><div class="swatch-hex">#DEDEDA · --border</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#C9C9C3"></div><div class="swatch-meta"><div class="swatch-role">Border strong</div><div class="swatch-hex">#C9C9C3 · --border-strong</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#1A1A17"></div><div class="swatch-meta"><div class="swatch-role">Text primary</div><div class="swatch-hex">#1A1A17 · --text-1</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#57564F"></div><div class="swatch-meta"><div class="swatch-role">Text secondary</div><div class="swatch-hex">#57564F · --text-2</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#84837C"></div><div class="swatch-meta"><div class="swatch-role">Text tertiary</div><div class="swatch-hex">#84837C · --text-3</div></div></div>
+    </div>
+
+    <div class="sub-label">Action &amp; Accent</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-chip" style="background:#C2410C"></div><div class="swatch-meta"><div class="swatch-role">Primary action</div><div class="swatch-hex">#C2410C · --primary</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#9A330A"></div><div class="swatch-meta"><div class="swatch-role">Primary hover</div><div class="swatch-hex">#9A330A · --primary-hover</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#1D4ED8"></div><div class="swatch-meta"><div class="swatch-role">Link / info</div><div class="swatch-hex">#1D4ED8 · --link</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#FFFFFF;box-shadow:inset 0 0 0 2px rgba(194,65,12,.35), inset 0 0 0 5px #fff"></div><div class="swatch-meta"><div class="swatch-role">Focus ring</div><div class="swatch-hex">#C2410C @ 35% · 2px</div></div></div>
+    </div>
+
+    <div class="sub-label">Status Colours · solid text on soft tint (AA on white)</div>
+    <div class="status-grid">
+      <div class="status-card"><span class="pill draft">Draft</span><span class="status-hexes">#4B5563<br>#F0F0EE</span></div>
+      <div class="status-card"><span class="pill sub">Submitted</span><span class="status-hexes">#1D4ED8<br>#E9F0FF</span></div>
+      <div class="status-card"><span class="pill rev">Under Review</span><span class="status-hexes">#B45309<br>#FBF1DD</span></div>
+      <div class="status-card"><span class="pill app">Approved</span><span class="status-hexes">#15803D<br>#E6F6EC</span></div>
+      <div class="status-card"><span class="pill rej">Rejected</span><span class="status-hexes">#B91C1C<br>#FCECEC</span></div>
+      <div class="status-card"><span class="pill rrq">Revision Requested</span><span class="status-hexes">#C2410C<br>#FCEEE4</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 2. TYPE ============================ -->
+  <section class="section" id="type">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Typography</h2>
+      <span class="section-note">system-ui stack · numerals tabular &amp; monospaced</span>
+    </div>
+    <div class="panel">
+      <div class="type-row"><span class="type-spec">H1 · 26 / 600</span><span class="t-h1">Purchase Order PO-2026-0481</span></div>
+      <div class="type-row"><span class="type-spec">H2 · 20 / 600</span><span class="t-h2">Line items &amp; fabrication schedule</span></div>
+      <div class="type-row"><span class="type-spec">H3 · 16 / 600</span><span class="t-h3">Beam specification — W12×26 A992</span></div>
+      <div class="type-row"><span class="type-spec">Body · 14 / 400</span><span class="t-body">Standard reading text for descriptions, notes, and form content. Tuned for legibility under bright shop-floor light — never lighter than the secondary text token.</span></div>
+      <div class="type-row"><span class="type-spec">Small · 13 / 400</span><span class="t-small">Helper text and supporting detail in secondary grey.</span></div>
+      <div class="type-row"><span class="type-spec">Micro · 12 / 400</span><span class="t-micro">Meta only — timestamps, IDs. Used sparingly.</span></div>
+      <div class="type-row"><span class="type-spec">Tabular · mono</span><span class="num t-body">PO-2026-0481 &nbsp; · &nbsp; $ 184,920.00 &nbsp; · &nbsp; 2026-06-11 &nbsp; · &nbsp; 12,480 lb</span></div>
+      <div class="type-row"><span class="type-spec">Alignment</span>
+        <span class="num t-small" style="white-space:pre">  1,204.00
+ 18,650.50
+184,920.00</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 3. BUTTONS ============================ -->
+  <section class="section" id="buttons">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Buttons</h2>
+      <span class="section-note">Default · Hover · Disabled</span>
+    </div>
+    <div class="panel">
+      <div class="btn-matrix">
+        <span class="mh"></span><span class="mh">Default</span><span class="mh">Hover</span><span class="mh">Disabled</span>
+
+        <span class="rl">Primary</span>
+        <span><button class="btn btn-primary">Submit PO</button></span>
+        <span><button class="btn btn-primary" style="background:#9A330A;border-color:#9A330A">Submit PO</button></span>
+        <span><button class="btn btn-primary" disabled>Submit PO</button></span>
+
+        <span class="rl">Secondary</span>
+        <span><button class="btn btn-secondary">Save draft</button></span>
+        <span><button class="btn btn-secondary" style="background:#FAFAF8;border-color:#84837C">Save draft</button></span>
+        <span><button class="btn btn-secondary" disabled>Save draft</button></span>
+
+        <span class="rl">Ghost</span>
+        <span><button class="btn btn-ghost">Cancel</button></span>
+        <span><button class="btn btn-ghost" style="background:#F0F0EE">Cancel</button></span>
+        <span><button class="btn btn-ghost" disabled>Cancel</button></span>
+
+        <span class="rl">Destructive</span>
+        <span><button class="btn btn-destructive">Reject PO</button></span>
+        <span><button class="btn btn-destructive" style="background:#991717;border-color:#991717">Reject PO</button></span>
+        <span><button class="btn btn-destructive" disabled>Reject PO</button></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 4. FORM ============================ -->
+  <section class="section" id="forms">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Form Controls</h2>
+      <span class="section-note">Label · helper · error state</span>
+    </div>
+    <div class="panel">
+      <div class="form-grid">
+        <div class="field">
+          <label for="f1">PO title <span class="req">*</span></label>
+          <input class="input" id="f1" type="text" value="Main span girders — Bay 4" />
+          <span class="help">Short identifier shown across lists and reports.</span>
+        </div>
+
+        <div class="field">
+          <label for="f2">Vendor</label>
+          <select class="select" id="f2">
+            <option>Atlas Structural Steel Co.</option>
+            <option>Midwest Iron Works</option>
+            <option>Granite Mill &amp; Forge</option>
+          </select>
+          <span class="help">Approved suppliers only.</span>
+        </div>
+
+        <div class="field">
+          <label for="f3">Required-by date</label>
+          <input class="input num-input" id="f3" type="date" value="2026-07-15" />
+          <span class="help">Drives the production scheduling queue.</span>
+        </div>
+
+        <div class="field has-error">
+          <label for="f4">PO amount (USD) <span class="req">*</span></label>
+          <input class="input num-input" id="f4" type="text" value="184,920.0" aria-invalid="true" />
+          <span class="err">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.5v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.4" r="0.9" fill="currentColor"/></svg>
+            Amount must include two decimal places (e.g. 184,920.00).
+          </span>
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="f5">Notes for fabrication</label>
+          <textarea class="textarea" id="f5" placeholder="Tolerances, finish, delivery sequencing…">All beams to be shot-blasted to SA 2.5 and primed before dispatch. Camber per drawing S-204.</textarea>
+          <span class="help">Visible to the shop floor and QA teams.</span>
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label style="margin-bottom:2px">Confirmations</label>
+          <label class="check">
+            <input type="checkbox" checked />
+            <span class="box"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 5 8.7 9.7 3.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span><span class="ctext">Material certs (MTRs) attached</span><br><span class="csub">Required before the PO can move to Under Review.</span></span>
+          </label>
+          <label class="check" style="margin-top:10px">
+            <input type="checkbox" />
+            <span class="box"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 5 8.7 9.7 3.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span><span class="ctext">Notify dispatch on approval</span></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 5. PILLS ============================ -->
+  <section class="section" id="pills">
+    <div class="section-head">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Status Pills</h2>
+      <span class="section-note">Full-round · dot + label</span>
+    </div>
+    <div class="panel">
+      <div class="util-row">
+        <span class="pill draft">Draft</span>
+        <span class="pill sub">Submitted</span>
+        <span class="pill rev">Under Review</span>
+        <span class="pill app">Approved</span>
+        <span class="pill rej">Rejected</span>
+        <span class="pill rrq">Revision Requested</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 6. DATA / NAV ============================ -->
+  <section class="section" id="data">
+    <div class="section-head">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Card, Table, Tabs, Breadcrumb &amp; Stepper</h2>
+    </div>
+
+    <div class="sub-label">Breadcrumb</div>
+    <div class="panel" style="padding:16px 24px">
+      <nav class="breadcrumb">
+        <a href="#">Purchase Orders</a><span class="sep">/</span>
+        <a href="#">Bay 4</a><span class="sep">/</span>
+        <span class="current">PO-2026-0481</span>
+      </nav>
+    </div>
+
+    <div class="sub-label">4-step wizard / stepper</div>
+    <div class="panel">
+      <div class="stepper">
+        <div class="step done"><span class="line"></span><span class="dot">✓</span><span class="slabel">Draft</span><span class="ssub">Jun 02</span></div>
+        <div class="step done"><span class="line"></span><span class="dot">✓</span><span class="slabel">Submitted</span><span class="ssub">Jun 04</span></div>
+        <div class="step active"><span class="line"></span><span class="dot">3</span><span class="slabel">Under Review</span><span class="ssub">In progress</span></div>
+        <div class="step upcoming"><span class="line"></span><span class="dot">4</span><span class="slabel">Approved</span><span class="ssub">Pending</span></div>
+      </div>
+    </div>
+
+    <div class="sub-label">Card with tabs + dense data table</div>
+    <div class="panel-card">
+      <div class="pc-head">
+        <h3>Open purchase orders</h3>
+        <span class="pill rev" style="margin-left:auto">12 awaiting review</span>
+      </div>
+      <div style="padding: 0 18px;">
+        <div class="tabs">
+          <button class="tab active">All <span class="count">48</span></button>
+          <button class="tab">Awaiting me <span class="count">12</span></button>
+          <button class="tab">Mine <span class="count">9</span></button>
+          <button class="tab">Closed <span class="count">131</span></button>
+        </div>
+      </div>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Project</th>
+            <th>Vendor</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th class="r">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="po">PO-2026-0481</td>
+            <td>Bay 4 Girders<div class="meta">12 line items</div></td>
+            <td>Atlas Structural Steel</td>
+            <td><span class="pill rev">Under Review</span></td>
+            <td class="meta">Jun 11, 09:42</td>
+            <td class="num r">$184,920.00</td>
+          </tr>
+          <tr>
+            <td class="po">PO-2026-0479</td>
+            <td>Riverside Plant<div class="meta">5 line items</div></td>
+            <td>Midwest Iron Works</td>
+            <td><span class="pill sub">Submitted</span></td>
+            <td class="meta">Jun 11, 08:15</td>
+            <td class="num r">$62,400.00</td>
+          </tr>
+          <tr>
+            <td class="po">PO-2026-0477</td>
+            <td>Tower Crane Base<div class="meta">3 line items</div></td>
+            <td>Granite Mill &amp; Forge</td>
+            <td><span class="pill app">Approved</span></td>
+            <td class="meta">Jun 10, 16:30</td>
+            <td class="num r">$9,180.50</td>
+          </tr>
+          <tr>
+            <td class="po">PO-2026-0474</td>
+            <td>Bay 7 Columns<div class="meta">18 line items</div></td>
+            <td>Atlas Structural Steel</td>
+            <td><span class="pill rrq">Revision Requested</span></td>
+            <td class="meta">Jun 10, 11:07</td>
+            <td class="num r">$241,775.00</td>
+          </tr>
+          <tr>
+            <td class="po">PO-2026-0470</td>
+            <td>Loading Dock Frame<div class="meta">7 line items</div></td>
+            <td>Midwest Iron Works</td>
+            <td><span class="pill rej">Rejected</span></td>
+            <td class="meta">Jun 09, 14:52</td>
+            <td class="num r">$33,640.00</td>
+          </tr>
+          <tr>
+            <td class="po">PO-2026-0468</td>
+            <td>Mezzanine Beams<div class="meta">Draft · not submitted</div></td>
+            <td>—</td>
+            <td><span class="pill draft">Draft</span></td>
+            <td class="meta">Jun 09, 10:20</td>
+            <td class="num r">$0.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================ 7. TIMELINE ============================ -->
+  <section class="section" id="timeline">
+    <div class="section-head">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Status-History Timeline</h2>
+      <span class="section-note">Dot · label · timestamp</span>
+    </div>
+    <div class="panel" style="max-width:520px">
+      <div class="timeline">
+        <div class="tl-item is-now">
+          <span class="tl-dot"></span>
+          <div class="tl-label">Under Review</div>
+          <div class="tl-by">Assigned to R. Okafor (QA Lead)</div>
+          <div class="tl-time">2026-06-04 · 14:08</div>
+        </div>
+        <div class="tl-item is-done">
+          <span class="tl-dot"></span>
+          <div class="tl-label">Submitted for approval</div>
+          <div class="tl-by">by M. Delgado · Procurement</div>
+          <div class="tl-time">2026-06-04 · 09:31</div>
+        </div>
+        <div class="tl-item is-done">
+          <span class="tl-dot"></span>
+          <div class="tl-label">Material certs attached</div>
+          <div class="tl-by">3 MTR documents uploaded</div>
+          <div class="tl-time">2026-06-03 · 16:45</div>
+        </div>
+        <div class="tl-item is-done">
+          <span class="tl-dot"></span>
+          <div class="tl-label">Draft created</div>
+          <div class="tl-by">by M. Delgado · Procurement</div>
+          <div class="tl-time">2026-06-02 · 11:02</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 8. EMPTY / ALERTS ============================ -->
+  <section class="section" id="feedback">
+    <div class="section-head">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Empty State &amp; Inline Alerts</h2>
+    </div>
+
+    <div class="sub-label">Inline alerts</div>
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <div class="alert info">
+        <svg class="a-ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1" fill="currentColor"/></svg>
+        <div><p class="a-title">Pricing locked to vendor quote Q-8841</p><p class="a-body">Line-item edits will require re-quoting before this PO can be submitted.</p></div>
+      </div>
+      <div class="alert ok">
+        <svg class="a-ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke="currentColor" stroke-width="1.5"/><path d="M6.3 10.2 9 12.8l4.6-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><p class="a-title">PO-2026-0477 approved</p><p class="a-body">Released to Production. Dispatch has been notified automatically.</p></div>
+      </div>
+      <div class="alert warn">
+        <svg class="a-ic" viewBox="0 0 20 20" fill="none"><path d="M10 2.6 18.4 17H1.6L10 2.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8v3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="10" cy="14" r="0.95" fill="currentColor"/></svg>
+        <div><p class="a-title">Required-by date is in 4 days</p><p class="a-body">This PO is still Under Review. Escalate if the fabrication slot is at risk.</p></div>
+      </div>
+      <div class="alert err">
+        <svg class="a-ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke="currentColor" stroke-width="1.5"/><path d="m7.4 7.4 5.2 5.2M12.6 7.4l-5.2 5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <div><p class="a-title">Submission failed — missing material certs</p><p class="a-body">Attach MTR documents for all 12 line items before re-submitting.</p></div>
+      </div>
+    </div>
+
+    <div class="sub-label">Empty state</div>
+    <div class="panel">
+      <div class="empty">
+        <svg class="ic" viewBox="0 0 48 48" fill="none"><rect x="8" y="11" width="32" height="26" rx="3" stroke="currentColor" stroke-width="2"/><path d="M8 18h32M15 7v6M33 7v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 27h10M16 32h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <h4>No purchase orders match these filters</h4>
+        <p>Try widening the date range or clearing the vendor filter. New POs you create will appear here.</p>
+        <button class="btn btn-primary">New purchase order</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 9. APP SHELL ============================ -->
+  <section class="section" id="shell">
+    <div class="section-head">
+      <span class="section-num">09</span>
+      <h2 class="section-title">App Shell</h2>
+      <span class="section-note">Fixed sidebar nav · top bar · avatar menu</span>
+    </div>
+
+    <div class="shell-frame">
+      <div class="shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <div class="sb-brand">
+            <div class="sb-logo">PO</div>
+            <div class="sb-name">PO Tracker<small>Fabrication</small></div>
+          </div>
+          <nav class="sb-nav">
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><rect x="2.5" y="2.5" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="11.5" y="2.5" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="2.5" y="11.5" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="11.5" y="11.5" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/></svg>
+              Dashboard
+            </a>
+            <a class="nav-item active">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M5 2.5h7l4 4V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11.5 2.5V6.5H15.5M7 11h6M7 14h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Purchase Orders
+              <span class="badge">12</span>
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M2.5 7 10 3l7.5 4-7.5 4-7.5-4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2.5 11 10 15l7.5-4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              Projects
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.4" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.5v2.2M10 15.3v2.2M2.5 10h2.2M15.3 10h2.2M4.7 4.7l1.6 1.6M13.7 13.7l1.6 1.6M15.3 4.7l-1.6 1.6M6.3 13.7l-1.6 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Production
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.5 3.5 5v4.2c0 4 2.8 6.6 6.5 8.3 3.7-1.7 6.5-4.3 6.5-8.3V5L10 2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.2 10 9.3 12l3.5-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Quality
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.6"/><path d="M12 8.5h3l3 2.5v3h-6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6" cy="15" r="1.6" stroke="currentColor" stroke-width="1.6"/><circle cx="14.5" cy="15" r="1.6" stroke="currentColor" stroke-width="1.6"/></svg>
+              Dispatch
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M5 2.5h6l4 4V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9h6M7 12h6M7 6h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Documents
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15Z" stroke="currentColor" stroke-width="1.6"/><path d="M10 6.5v4.5M10 13.6h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              Disputes
+              <span class="badge">3</span>
+            </a>
+            <a class="nav-item">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M3 17V8M8 17V4M13 17v-6M17 17V9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              Reports
+            </a>
+          </nav>
+        </aside>
+
+        <!-- Main -->
+        <div class="main-col">
+          <header class="topbar">
+            <div class="tb-titles">
+              <div class="tb-crumb"><a href="#">Purchase Orders</a><span class="sep">/</span><span>All</span></div>
+              <h1>Purchase Orders</h1>
+            </div>
+            <div class="tb-spacer"></div>
+            <div class="tb-search">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="m11 11 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Search PO # or project…
+            </div>
+            <button class="tb-icon-btn" title="Notifications">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 8a5 5 0 0 1 10 0c0 5 2 6 2 6H3s2-1 2-6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 16a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6"/></svg>
+              <span class="ping"></span>
+            </button>
+            <button class="btn btn-primary">+ New PO</button>
+            <div class="avatar-menu">
+              <span class="avatar">MD</span>
+              <span class="who">M. Delgado<small>Procurement</small></span>
+              <svg width="12" height="12" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="#84837C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </header>
+
+          <div class="main-body">
+            <div class="kpi-row">
+              <div class="kpi"><div class="k-label">Open POs</div><div class="k-val">48</div><div class="k-sub">$2.41M committed</div></div>
+              <div class="kpi"><div class="k-label">Awaiting review</div><div class="k-val">12</div><div class="k-sub">avg 1.8 days</div></div>
+              <div class="kpi"><div class="k-label">Revision req.</div><div class="k-val">5</div><div class="k-sub">2 overdue</div></div>
+              <div class="kpi"><div class="k-label">Approved (MTD)</div><div class="k-val">31</div><div class="k-sub">$1.07M</div></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="pc-head">
+                <h3>Recent activity</h3>
+                <a href="#" style="margin-left:auto;color:var(--link);text-decoration:none;font-size:13px;font-weight:600">View all</a>
+              </div>
+              <table class="data">
+                <thead>
+                  <tr><th>PO Number</th><th>Vendor</th><th>Status</th><th>Updated</th><th class="r">Amount</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="po">PO-2026-0481</td><td>Atlas Structural Steel</td><td><span class="pill rev">Under Review</span></td><td class="meta">09:42</td><td class="num r">$184,920.00</td></tr>
+                  <tr><td class="po">PO-2026-0479</td><td>Midwest Iron Works</td><td><span class="pill sub">Submitted</span></td><td class="meta">08:15</td><td class="num r">$62,400.00</td></tr>
+                  <tr><td class="po">PO-2026-0474</td><td>Atlas Structural Steel</td><td><span class="pill rrq">Revision Requested</span></td><td class="meta">Yesterday</td><td class="num r">$241,775.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
