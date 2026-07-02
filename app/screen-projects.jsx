@@ -53,10 +53,11 @@ const PD_PROJECTS = [
     activeStage: 1,
     stagesCompleted: 0,
     stages: [
-      { n: 1, status: 'In Progress', assignee: 'Rajesh Kumar', assigneeRole: 'Production Supervisor', initials: 'RK', startDate: '2026-06-10', endDate: null,         comment: 'Drawings updated to rev B — awaiting new cut schedule.' },
-      { n: 2, status: 'Pending',     assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', startDate: null,          endDate: null,         comment: null },
-      { n: 3, status: 'Pending',     assignee: 'Priya Nair',   assigneeRole: 'Fit-Up Technician',     initials: 'PN', startDate: null,          endDate: null,         comment: null },
-      { n: 4, status: 'Pending',     assignee: 'K. Verma',     assigneeRole: 'Quality Inspector',     initials: 'KV', startDate: null,          endDate: null,         comment: null },
+      { n: 1, status: 'In Progress', assignee: 'Rajesh Kumar', assigneeRole: 'Production Supervisor', initials: 'RK', tasksDone: 3, startDate: '2026-06-10', endDate: null,         comment: 'Drawings updated to rev B — awaiting new cut schedule.' },
+      { n: 2, status: 'Pending',     assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
+      { n: 3, status: 'Pending',     assignee: 'Priya Nair',   assigneeRole: 'Fit-Up Technician',     initials: 'PN', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
+      { n: 4, status: 'Pending',     assignee: 'K. Verma',     assigneeRole: 'Quality Head',          initials: 'KV', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
+      { n: 5, status: 'Pending',     assignee: 'V. Patil',     assigneeRole: 'Dispatch In-charge',    initials: 'VP', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
     ],
     pos: [
       { no: 'PO-2026-0042', title: 'Structural steel — Warehouse Block B', vendor: 'Acme Infrastructure Ltd.', amount: 788800, status: 'Approved', createdBy: 'M. Delgado', approvalStatus: 'Approved' },
@@ -80,10 +81,11 @@ const PD_PROJECTS = [
     activeStage: 2,
     stagesCompleted: 1,
     stages: [
-      { n: 1, status: 'Completed',   assignee: 'M. Patel',     assigneeRole: 'Production Lead',       initials: 'MP', startDate: '2026-06-01', endDate: '2026-06-08', comment: 'All cuts completed to tolerance.' },
-      { n: 2, status: 'In Progress', assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', startDate: '2026-06-09', endDate: null,         comment: 'Shot-blasting 60% complete.' },
-      { n: 3, status: 'Pending',     assignee: 'D. Joshi',     assigneeRole: 'Senior Fabricator',     initials: 'DJ', startDate: null,          endDate: null,         comment: null },
-      { n: 4, status: 'Pending',     assignee: 'K. Verma',     assigneeRole: 'Quality Inspector',     initials: 'KV', startDate: null,          endDate: null,         comment: null },
+      { n: 1, status: 'Completed',   assignee: 'M. Patel',     assigneeRole: 'Production Lead',       initials: 'MP', tasksDone: 8, startDate: '2026-06-01', endDate: '2026-06-08', comment: 'All cuts completed to tolerance.' },
+      { n: 2, status: 'In Progress', assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', tasksDone: 3, startDate: '2026-06-09', endDate: null,         comment: 'Shot-blasting 60% complete.' },
+      { n: 3, status: 'Pending',     assignee: 'D. Joshi',     assigneeRole: 'Senior Fabricator',     initials: 'DJ', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
+      { n: 4, status: 'Pending',     assignee: 'K. Verma',     assigneeRole: 'Quality Head',          initials: 'KV', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
+      { n: 5, status: 'Pending',     assignee: 'V. Patil',     assigneeRole: 'Dispatch In-charge',    initials: 'VP', tasksDone: 0, startDate: null,          endDate: null,         comment: null },
     ],
     pos: [
       { no: 'PO-2026-0479', title: 'Crane runway girders', vendor: 'Meridian Construction Co.', amount: 624000, status: 'Approved', createdBy: 'T. Nakamura', approvalStatus: 'Approved' },
@@ -106,12 +108,13 @@ const PD_PROJECTS = [
     startDate: '2026-05-05',
     targetDate: '2026-06-01',
     activeStage: null,
-    stagesCompleted: 4,
+    stagesCompleted: 5,
     stages: [
-      { n: 1, status: 'Completed', assignee: 'Rajesh Kumar', assigneeRole: 'Production Supervisor', initials: 'RK', startDate: '2026-05-05', endDate: '2026-05-10', comment: null },
-      { n: 2, status: 'Completed', assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', startDate: '2026-05-11', endDate: '2026-05-18', comment: null },
-      { n: 3, status: 'Completed', assignee: 'D. Joshi',     assigneeRole: 'Senior Fabricator',     initials: 'DJ', startDate: '2026-05-19', endDate: '2026-05-26', comment: null },
-      { n: 4, status: 'Completed', assignee: 'K. Verma',     assigneeRole: 'Quality Inspector',     initials: 'KV', startDate: '2026-05-27', endDate: '2026-05-31', comment: 'All inspections passed. Dispatch cleared.' },
+      { n: 1, status: 'Completed', assignee: 'Rajesh Kumar', assigneeRole: 'Production Supervisor', initials: 'RK', tasksDone: 8, startDate: '2026-05-05', endDate: '2026-05-10', comment: null },
+      { n: 2, status: 'Completed', assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', tasksDone: 6, startDate: '2026-05-11', endDate: '2026-05-18', comment: null },
+      { n: 3, status: 'Completed', assignee: 'D. Joshi',     assigneeRole: 'Senior Fabricator',     initials: 'DJ', tasksDone: 6, startDate: '2026-05-19', endDate: '2026-05-26', comment: null },
+      { n: 4, status: 'Completed', assignee: 'K. Verma',     assigneeRole: 'Quality Head',          initials: 'KV', tasksDone: 5, startDate: '2026-05-27', endDate: '2026-05-31', comment: 'All inspections passed. Dispatch cleared.' },
+      { n: 5, status: 'Completed', assignee: 'V. Patil',     assigneeRole: 'Dispatch In-charge',    initials: 'VP', tasksDone: 4, startDate: '2026-06-01', endDate: '2026-06-01', comment: 'Dispatched to site.' },
     ],
     pos: [
       { no: 'PO-2026-0477', title: 'Mezzanine floor framing', vendor: 'Sterling Steel Projects', amount: 918050, status: 'Approved', createdBy: 'M. Delgado', approvalStatus: 'Approved' },
@@ -273,7 +276,7 @@ function ProjectList({ projects, onView, listState, setListState }) {
                 <tbody>
                   {shown.map((p) => {
                     const active = p.stages.find((s) => s.status === 'In Progress');
-                    const pct = Math.round((p.stagesCompleted / 4) * 100);
+                    const pct = Math.round((p.stagesCompleted / 5) * 100);
                     return (
                       <tr key={p.id} className="hover:bg-[#FAFAF8] group">
                         <td className={tdCls}>
@@ -307,7 +310,7 @@ function ProjectList({ projects, onView, listState, setListState }) {
                         <td className={tdCls}>
                           <button
                             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1D4ED8] hover:bg-[#E9F0FF] px-2.5 py-1.5 rounded-md"
-                            onClick={() => onView(p)}
+                            onClick={() => { localStorage.setItem('pd_project', JSON.stringify(p)); window.location.href = 'Step_6_Project_Details.html'; }}
                           >
                             <Icon name="eye" className="w-[15px] h-[15px]" /> View
                           </button>
@@ -747,20 +750,16 @@ function ProjectDetail({ project, onBack, notify }) {
 }
 
 /* ============================================================
-   SCREEN PROJECTS — orchestrates list ↔ detail
+   SCREEN PROJECTS — list only (detail is Step_6_Project_Details.html)
    ============================================================ */
 function ScreenProjects({ notify }) {
-  const [view, setView]       = React.useState('list');
-  const [selected, setSelected] = React.useState(null);
   const [listState, setListState] = React.useState({ search: '', statusFilter: '', page: 1 });
-
-  const handleView = (project) => { setSelected(project); setView('detail'); };
-  const handleBack = () => { setSelected(null); setView('list'); };
-
-  if (view === 'detail' && selected) {
-    return <ProjectDetail project={selected} onBack={handleBack} notify={notify} />;
-  }
+  const handleView = (project) => {
+    localStorage.setItem('pd_project', JSON.stringify(project));
+    window.location.href = 'Step_6_Project_Details.html';
+  };
   return <ProjectList projects={PD_PROJECTS} onView={handleView} listState={listState} setListState={setListState} />;
 }
 
 window.ScreenProjects = ScreenProjects;
+window.PD_PROJECTS = PD_PROJECTS;

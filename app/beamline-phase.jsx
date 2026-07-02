@@ -25,6 +25,21 @@ const BL_DOCS = [
 ];
 const BL_DOC_TYPES = ['Assembly Drawings', 'Photos', 'Report', 'Other'];
 
+const BL_PHASES_LOCKED = [
+  { n: 1, name: 'Cutting',  status: 'In Progress' },
+  { n: 2, name: 'Beamline', status: 'Pending', locked: true },
+  { n: 3, name: 'Fit-Up',   status: 'Pending', locked: true },
+  { n: 4, name: 'QC',       status: 'Pending', locked: true },
+  { n: 5, name: 'Dispatch', status: 'Pending', locked: true },
+];
+const BL_PHASES_ACTIVE = [
+  { n: 1, name: 'Cutting',  status: 'Completed' },
+  { n: 2, name: 'Beamline', status: 'In Progress' },
+  { n: 3, name: 'Fit-Up',   status: 'Pending', locked: true },
+  { n: 4, name: 'QC',       status: 'Pending', locked: true },
+  { n: 5, name: 'Dispatch', status: 'Pending', locked: true },
+];
+
 /* static (non-interactive) checklist row */
 function BLCheckRow({ item, checked, by, date }) {
   return (
@@ -61,7 +76,7 @@ function BLDocRow({ doc }) {
 }
 
 /* right column shared by locked + active (upload toggled by owner/locked) */
-function BLRightColumn({ owner, locked, activePhaseN = 2 }) {
+function BLRightColumn({ owner, locked, activePhaseN = 2, phases = PHASES }) {
   return (
     <div className={'flex flex-col gap-3' + (locked ? ' opacity-60' : '')}>
       <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
@@ -101,7 +116,7 @@ function BLRightColumn({ owner, locked, activePhaseN = 2 }) {
       <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
         <h3 className="text-[15px] font-semibold text-[#1A1A17] mb-2.5">All phases</h3>
         <ul className="flex flex-col gap-1.5">
-          {PHASES.map((p) => (
+          {phases.map((p) => (
             <li key={p.n} className={'flex items-center gap-2 px-2 py-1.5 rounded-md ' + (p.n === activePhaseN ? 'bg-[#F0F0EE]' : '')}>
               <span className="w-5 h-5 rounded-full grid place-items-center text-[11px] font-mono font-semibold flex-none" style={p.status === 'Completed' ? { background: '#15803D', color: '#fff' } : p.status === 'In Progress' ? { background: '#1D4ED8', color: '#fff' } : { background: '#F0F0EE', color: '#84837C' }}>{p.n}</span>
               <span className={'text-[13px] ' + (p.n === activePhaseN ? 'font-semibold text-[#1A1A17]' : 'text-[#1A1A17]')}>{p.name}</span>
@@ -116,8 +131,9 @@ function BLRightColumn({ owner, locked, activePhaseN = 2 }) {
 
 /* ---- LOCKED body (primary render) ---- */
 function BeamlineLockedBody({ role, notify }) {
-  const owner = role === 'Project Manager';
-  const planningOfficer = role === 'Planning Officer';
+  const owner = role === 'Project Manager' || role === 'General Manager';
+  const canComment = !['Finance Officer', 'Viewer'].includes(role);
+  const canDispute = role === 'General Manager' || (!owner && canComment);
 
   return (
     <div className="p-5 overflow-y-auto h-full">
@@ -183,27 +199,30 @@ function BeamlineLockedBody({ role, notify }) {
 
           {/* comments */}
           <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-[16px] font-semibold text-[#1A1A17]">Comments &amp; activity</h3>
-              {/* Planning Officer can raise a dispute even while locked */}
-              {planningOfficer && (
-                <button className="ml-auto inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[12px] px-3 py-1.5 rounded-md" onClick={() => notify('Raise dispute')}>
-                  <Icon name="disputes" className="w-3.5 h-3.5" /> Raise Dispute
-                </button>
-              )}
-            </div>
+            <h3 className="text-[16px] font-semibold text-[#1A1A17] mb-3">Comments &amp; activity</h3>
             <p className="text-[13px] text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2.5">No comments yet — the phase hasn't started.</p>
-            {owner && (
+            {canComment ? (
               <div className="flex flex-col gap-2 mt-3">
                 <textarea className="w-full min-h-[56px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
-                <button className="self-end inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+                <div className="flex items-center justify-between gap-2">
+                  {canDispute && (
+                    <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[12px] px-3 py-1.5 rounded-md" onClick={() => notify('Dispute raised')}>
+                      <Icon name="disputes" className="w-3.5 h-3.5" /> Raise Dispute
+                    </button>
+                  )}
+                  <button className="ml-auto inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2 mt-3">
+                {role === 'Finance Officer' ? 'Finance Officer — financial view only, no comments' : 'Viewer — read-only, no comment access'}
               </div>
             )}
           </div>
         </div>
 
         {/* RIGHT (no upload while locked) */}
-        <BLRightColumn owner={owner} locked={true} activePhaseN={2} />
+        <BLRightColumn owner={owner} locked={true} activePhaseN={2} phases={BL_PHASES_LOCKED} />
       </div>
     </div>
   );
@@ -277,7 +296,7 @@ function BeamlineActiveInset({ notify }) {
             <div className="mt-3 pt-3 border-t border-[#F0F0EE] text-[12px] text-[#57564F]"><span className="text-[#B91C1C] font-semibold">*</span> Required — must be checked before completing the phase.</div>
           </div>
         </div>
-        <BLRightColumn owner={true} locked={false} activePhaseN={2} />
+        <BLRightColumn owner={true} locked={false} activePhaseN={2} phases={BL_PHASES_ACTIVE} />
       </div>
     </div>
   );
@@ -285,18 +304,23 @@ function BeamlineActiveInset({ notify }) {
 
 /* ---- labelled role frame ---- */
 function BLRoleFrame({ tag, title, role, notify, height = 800 }) {
+  const access = ['Project Manager', 'General Manager'].includes(role) ? 'edit' : 'view';
   return (
     <section>
       <div className="flex items-center gap-3 mb-3 flex-wrap">
         <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">{tag}</span>
         <span className="text-[15px] font-semibold text-[#1A1A17]">{title}</span>
         <NeutralBadge role={role} />
+        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
+          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
+          {access === 'edit' ? 'Edit' : 'View only'}
+        </span>
       </div>
       <div className="border border-[#C9C9C3] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] bg-[#F4F4F2]">
         <div className="flex" style={{ height }}>
           <MiniRail />
           <div className="flex-1 min-w-0 flex flex-col">
-            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Beamline']} role={role} />
+            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Beamline']} role={role} access={access} />
             <div className="flex-1 overflow-hidden"><BeamlineLockedBody role={role} notify={notify} /></div>
           </div>
         </div>
@@ -316,14 +340,32 @@ function BeamlinePhasePage() {
         <header className="mb-10">
           <p className="font-mono text-[12px] tracking-[0.12em] uppercase text-[#C2410C] font-semibold mb-2.5">Siteflow · Production · Phase 2</p>
           <h1 className="text-[26px] font-semibold tracking-tight mb-2">Beamline — phase page</h1>
-          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 2 of 5. The predecessor (Cutting) isn't complete yet, so the primary render is the <span className="font-semibold text-[#1A1A17]">locked state</span>. The key story is the <span className="font-semibold text-[#1A1A17]">locked → in-progress</span> transition — shown as an inset below the owner frame.</p>
+          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 2 of 5 — all 8 roles shown in the <span className="font-semibold text-[#1A1A17]">locked state</span> (Cutting not yet complete). The <span className="font-semibold text-[#1A1A17]">locked → in-progress</span> transition is shown as an inset under GM and PM frames. Finance Officer and Viewer have no comment access.</p>
         </header>
 
         <div className="flex flex-col gap-12">
-          {/* State 1 — PM owner, locked */}
+          {/* State 1 — GM, full access */}
           <div>
-            <BLRoleFrame tag="State 1" title="Project Manager — owner, locked (can't start yet)" role="Project Manager" notify={notify} height={760} />
-            {/* in-progress inset */}
+            <BLRoleFrame tag="State 1" title="General Manager — full access, all controls across all phases" role="General Manager" notify={notify} height={760} />
+            <div className="mt-5 ml-0 lg:ml-8 relative">
+              <div className="flex items-center gap-2 mb-3">
+                <Icon name="chevron" className="w-5 h-5 text-[#C2410C] rotate-180" strokeWidth={2.2} />
+                <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">After Cutting completes</span>
+                <span className="text-[14px] font-semibold text-[#1A1A17]">Beamline started — In Progress, 1/5 checked</span>
+              </div>
+              <div className="border border-[#C2410C]/40 rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
+                <BeamlineActiveInset notify={notify} />
+              </div>
+              <p className="mt-2.5 text-[12px] text-[#84837C] leading-relaxed flex items-start gap-2">
+                <Icon name="info" className="w-4 h-4 text-[#84837C] flex-none mt-0.5" />
+                <span>Lock banner gone; <span className="font-semibold text-[#1A1A17]">Start Phase</span> became <span className="font-semibold text-[#1A1A17]">Save Progress + Complete Phase</span>; checklist is now interactive with item 1 checked.</span>
+              </p>
+            </div>
+          </div>
+
+          {/* State 2 — PM owner, locked */}
+          <div>
+            <BLRoleFrame tag="State 2" title="Project Manager — owner, locked (can't start yet)" role="Project Manager" notify={notify} height={760} />
             <div className="mt-5 ml-0 lg:ml-8 relative">
               <div className="flex items-center gap-2 mb-3">
                 <Icon name="chevron" className="w-5 h-5 text-[#C2410C] rotate-180" strokeWidth={2.2} />
@@ -340,17 +382,12 @@ function BeamlinePhasePage() {
             </div>
           </div>
 
-          {/* State 2 — Planning Officer, locked + dispute */}
-          <BLRoleFrame tag="State 2" title="Planning Officer — read-only, can raise a dispute" role="Planning Officer" notify={notify} height={780} />
-        </div>
-
-        {/* annotation */}
-        <div className="mt-8 flex items-start gap-3 rounded-lg border border-[#DEDEDA] bg-white p-5">
-          <span className="w-9 h-9 rounded-md bg-[#FBF1DD] text-[#B45309] grid place-items-center flex-none"><Icon name="disputes" className="w-[18px] h-[18px]" /></span>
-          <div>
-            <h4 className="text-[14px] font-semibold text-[#1A1A17]">Planning Officer permissions</h4>
-            <p className="text-[13px] text-[#57564F] mt-0.5 leading-relaxed">Read-only on phase progress (no Start / Complete / upload), but holds <span className="font-mono text-[#1A1A17]">po.dispute.create</span> — so a quiet <span className="font-semibold text-[#1A1A17]">Raise Dispute</span> button appears in the comments area. Viewer role would see neither the phase controls nor the dispute button.</p>
-          </div>
+          <BLRoleFrame tag="State 3" title="Planning Officer — read-only, can comment + raise dispute" role="Planning Officer" notify={notify} height={760} />
+          <BLRoleFrame tag="State 4" title="Quality Inspector — read-only, can comment" role="Quality Inspector" notify={notify} height={760} />
+          <BLRoleFrame tag="State 5" title="Quality Head — read-only, can comment" role="Quality Head" notify={notify} height={760} />
+          <BLRoleFrame tag="State 6" title="Finance Officer — read-only, no comment access" role="Finance Officer" notify={notify} height={720} />
+          <BLRoleFrame tag="State 7" title="Dispatch In-charge — read-only, can comment" role="Dispatch In-charge" notify={notify} height={760} />
+          <BLRoleFrame tag="State 8" title="Viewer — read-only, no comment or actions" role="Viewer" notify={notify} height={720} />
         </div>
       </div>
 

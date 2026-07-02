@@ -27,6 +27,14 @@ const QC_DOCS = [
 ];
 const QC_DOC_TYPES = ['QC Report', 'Photos', 'Other'];
 
+const QC_PHASES_DATA = [
+  { n: 1, name: 'Cutting',  status: 'Completed' },
+  { n: 2, name: 'Beamline', status: 'Completed' },
+  { n: 3, name: 'Fit-Up',   status: 'Completed' },
+  { n: 4, name: 'QC',       status: 'In Progress' },
+  { n: 5, name: 'Dispatch', status: 'Pending', locked: true },
+];
+
 const QC_COMMENTS = [
   { who: 'Meera Joshi', role: 'Quality Head', text: 'DFT readings all within spec (avg 142µm). Final sign-off pending dispatch readiness.', time: '13 Jun 2026 · 15:40' },
 ];
@@ -131,11 +139,11 @@ function QCRelatedPhases() {
     <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
       <h3 className="text-[15px] font-semibold text-[#1A1A17] mb-2.5">All phases</h3>
       <ul className="flex flex-col gap-1.5">
-        {PHASES.map((p) => (
+        {QC_PHASES_DATA.map((p) => (
           <li key={p.n} className={'flex items-center gap-2 px-2 py-1.5 rounded-md ' + (p.n === 4 ? 'bg-[#E9F0FF]' : '')}>
-            <span className="w-5 h-5 rounded-full grid place-items-center text-[11px] font-mono font-semibold flex-none" style={p.status === 'Completed' ? { background: '#15803D', color: '#fff' } : p.n === 4 ? { background: '#1D4ED8', color: '#fff' } : { background: '#F0F0EE', color: '#84837C' }}>{p.n}</span>
+            <span className="w-5 h-5 rounded-full grid place-items-center text-[11px] font-mono font-semibold flex-none" style={p.status === 'Completed' ? { background: '#15803D', color: '#fff' } : p.status === 'In Progress' ? { background: '#1D4ED8', color: '#fff' } : { background: '#F0F0EE', color: '#84837C' }}>{p.n}</span>
             <span className={'text-[13px] ' + (p.n === 4 ? 'font-semibold text-[#1D4ED8]' : 'text-[#1A1A17]')}>{p.name}</span>
-            <span className="ml-auto">{p.n === 4 ? <PhasePill status="In Progress" /> : p.n === 5 ? <PhasePill status="Pending" locked /> : <PhasePill status={p.status} locked={p.locked} />}</span>
+            <span className="ml-auto"><PhasePill status={p.status} locked={p.locked} /></span>
           </li>
         ))}
       </ul>
@@ -148,8 +156,9 @@ function QCRelatedPhases() {
 }
 
 function QCBody({ role, notify, openModal }) {
-  const owner = role === 'Quality Head';
-  const dispatch = role === 'Dispatch In-charge';
+  const owner = role === 'Quality Head' || role === 'General Manager';
+  const canComment = !['Finance Officer', 'Viewer'].includes(role);
+  const canDispute = role === 'General Manager' || (!owner && canComment);
   const [checklist, setChecklist] = React.useState(QC_CHECKLIST_INIT);
   const toggle = (i) => { if (!owner) return; setChecklist((p) => p.map((it, idx) => idx === i ? { ...it, done: !it.done, by: !it.done ? 'Meera Joshi' : undefined, date: !it.done ? '13 Jun 2026' : undefined } : it)); };
   const doneCount = checklist.filter((c) => c.done).length;
@@ -161,7 +170,7 @@ function QCBody({ role, notify, openModal }) {
       {!owner && (
         <div className="flex items-start gap-2.5 rounded-md px-3.5 py-2.5 mb-3" style={{ background: '#E9F0FF', border: '1px solid #C7D9FF', borderLeft: '4px solid #1D4ED8' }}>
           <Icon name="eye" className="w-[18px] h-[18px] flex-none mt-px" style={{ color: '#1D4ED8' }} />
-          <span className="text-[13px] text-[#1A1A17]"><span className="font-semibold">You're viewing this phase in read-only mode.</span> Dispatch (Phase 5) will unlock when QC is approved.</span>
+          <span className="text-[13px] text-[#1A1A17]"><span className="font-semibold">You're viewing this phase in read-only mode.</span>{role === 'Dispatch In-charge' && ' Dispatch (Phase 5) will unlock once QC is approved.'}</span>
         </div>
       )}
 
@@ -242,15 +251,21 @@ function QCBody({ role, notify, openModal }) {
                 </li>
               ))}
             </ol>
-            <div className="flex flex-col gap-2">
-              <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
-              <div className="flex items-center justify-between gap-2">
-                {dispatch ? (
-                  <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => openModal('issue')}><Icon name="disputes" className="w-4 h-4" /> Raise Dispute</button>
-                ) : <span />}
-                <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+            {canComment ? (
+              <div className="flex flex-col gap-2">
+                <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
+                <div className="flex items-center justify-between gap-2">
+                  {canDispute ? (
+                    <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => openModal('issue')}><Icon name="disputes" className="w-4 h-4" /> Raise Dispute</button>
+                  ) : <span />}
+                  <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2">
+                {role === 'Finance Officer' ? 'Finance Officer — financial view only, no comments' : 'Viewer — read-only, no comment access'}
+              </div>
+            )}
           </div>
         </div>
 
@@ -293,18 +308,23 @@ function QCBody({ role, notify, openModal }) {
 }
 
 function QCRoleFrame({ tag, title, role, notify, openModal, height = 1120 }) {
+  const access = ['Quality Head', 'General Manager'].includes(role) ? 'edit' : 'view';
   return (
     <section>
       <div className="flex items-center gap-3 mb-3 flex-wrap">
         <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">{tag}</span>
         <span className="text-[15px] font-semibold text-[#1A1A17]">{title}</span>
         <NeutralBadge role={role} />
+        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
+          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
+          {access === 'edit' ? 'Edit' : 'View only'}
+        </span>
       </div>
       <div className="border border-[#C9C9C3] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] bg-[#F4F4F2]">
         <div className="flex" style={{ height }}>
           <MiniRail />
           <div className="flex-1 min-w-0 flex flex-col">
-            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'QC (Painting & Finishing)']} role={role} />
+            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'QC (Painting & Finishing)']} role={role} access={access} />
             <div className="flex-1 overflow-hidden"><QCBody role={role} notify={notify} openModal={openModal} /></div>
           </div>
         </div>
@@ -325,11 +345,12 @@ function QCPhasePage() {
         <header className="mb-10">
           <p className="font-mono text-[12px] tracking-[0.12em] uppercase text-[#C2410C] font-semibold mb-2.5">Siteflow · Production · Phase 4</p>
           <h1 className="text-[26px] font-semibold tracking-tight mb-2">QC — Painting &amp; Finishing</h1>
-          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 4 of 5 — the Quality Head's final sign-off before dispatch. Shown for the Quality Head (owner) and the Dispatch In-charge (read-only, watching for the unlock). Approve QC and Raise Quality Issue open confirmation dialogs.</p>
+          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 4 of 5 — Quality Head's final sign-off before dispatch. All 8 roles shown. General Manager has full access. Dispatch In-charge watches for unlock. Finance Officer and Viewer are strict read-only. Approve QC and Raise Quality Issue open confirmation dialogs.</p>
         </header>
 
         <div className="flex flex-col gap-12">
-          <QCRoleFrame tag="State 1" title="Quality Head — owner, final sign-off" role="Quality Head" notify={notify} openModal={setModal} height={1080} />
+          <QCRoleFrame tag="State 1" title="General Manager — full access, all controls across all phases" role="General Manager" notify={notify} openModal={setModal} height={1080} />
+          <QCRoleFrame tag="State 2" title="Quality Head — owner, final sign-off" role="Quality Head" notify={notify} openModal={setModal} height={1080} />
 
           <div>
             <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[#57564F] font-semibold mb-3">Confirmation dialogs (owner actions)</div>
@@ -340,15 +361,12 @@ function QCPhasePage() {
             <p className="mt-2.5 text-[12px] text-[#84837C]">In-page, Approve QC stays disabled until the last required item ("Project marked ready for dispatch") is checked; this button previews the dialog directly.</p>
           </div>
 
-          <QCRoleFrame tag="State 2" title="Dispatch In-charge — read-only, awaiting unlock" role="Dispatch In-charge" notify={notify} openModal={setModal} height={1120} />
-        </div>
-
-        <div className="mt-8 flex items-start gap-3 rounded-lg border border-[#DEDEDA] bg-white p-5">
-          <span className="w-9 h-9 rounded-md bg-[#E9F0FF] text-[#1D4ED8] grid place-items-center flex-none"><Icon name="dispatch" className="w-[18px] h-[18px]" /></span>
-          <div>
-            <h4 className="text-[14px] font-semibold text-[#1A1A17]">Dispatch In-charge on QC</h4>
-            <p className="text-[13px] text-[#57564F] mt-0.5 leading-relaxed">They own the next phase, so this read-only view is a <span className="font-semibold text-[#1A1A17]">watch state</span> — the banner spells out that Dispatch unlocks on QC approval, and the Related Phases card shows Phase 5 locked. They keep <span className="font-mono text-[#1A1A17]">po.comment.create</span> and <span className="font-mono text-[#1A1A17]">po.dispute.create</span> (comment input + Raise Dispute), but no QC controls.</p>
-          </div>
+          <QCRoleFrame tag="State 3" title="Planning Officer — read-only, can comment + raise dispute" role="Planning Officer" notify={notify} openModal={setModal} height={1020} />
+          <QCRoleFrame tag="State 4" title="Project Manager — read-only, can comment + raise dispute" role="Project Manager" notify={notify} openModal={setModal} height={1020} />
+          <QCRoleFrame tag="State 5" title="Quality Inspector — read-only, can comment" role="Quality Inspector" notify={notify} openModal={setModal} height={1020} />
+          <QCRoleFrame tag="State 6" title="Finance Officer — read-only, no comment access" role="Finance Officer" notify={notify} openModal={setModal} height={980} />
+          <QCRoleFrame tag="State 7" title="Dispatch In-charge — read-only, awaiting dispatch unlock" role="Dispatch In-charge" notify={notify} openModal={setModal} height={1020} />
+          <QCRoleFrame tag="State 8" title="Viewer — read-only, no comment or actions" role="Viewer" notify={notify} openModal={setModal} height={980} />
         </div>
       </div>
 

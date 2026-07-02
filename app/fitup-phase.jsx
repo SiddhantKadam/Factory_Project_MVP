@@ -197,7 +197,9 @@ function FUDocRow({ doc }) {
 
 /* ---------- phase body ---------- */
 function FitUpBody({ role, notify, openModal }) {
-  const owner = role === 'Quality Inspector';
+  const owner = role === 'Quality Inspector' || role === 'General Manager';
+  const canComment = !['Finance Officer', 'Viewer'].includes(role);
+  const canDispute = role === 'General Manager' || (!owner && canComment);
   const [checklist, setChecklist] = React.useState(FU_CHECKLIST_INIT);
   const toggle = (i) => { if (!owner) return; setChecklist((p) => p.map((it, idx) => idx === i ? { ...it, done: !it.done, by: !it.done ? 'Priya Sharma' : undefined, date: !it.done ? '13 Jun 2026' : undefined } : it)); };
   const doneCount = checklist.filter((c) => c.done).length;
@@ -295,17 +297,21 @@ function FitUpBody({ role, notify, openModal }) {
                 </li>
               ))}
             </ol>
-            {/* comment input present for both QI + PM */}
-            <div className="flex flex-col gap-2">
-              <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
-              <div className="flex items-center justify-between gap-2">
-                {/* PM gets a Raise Dispute ghost in comments; QI already has it in header */}
-                {!owner ? (
-                  <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => openModal('dispute')}><Icon name="disputes" className="w-4 h-4" /> Raise Dispute</button>
-                ) : <span />}
-                <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+            {canComment ? (
+              <div className="flex flex-col gap-2">
+                <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
+                <div className="flex items-center justify-between gap-2">
+                  {canDispute ? (
+                    <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => openModal('dispute')}><Icon name="disputes" className="w-4 h-4" /> Raise Dispute</button>
+                  ) : <span />}
+                  <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2">
+                {role === 'Finance Officer' ? 'Finance Officer — financial view only, no comments' : 'Viewer — read-only, no comment access'}
+              </div>
+            )}
           </div>
         </div>
 
@@ -359,18 +365,23 @@ function FitUpBody({ role, notify, openModal }) {
 }
 
 function FURoleFrame({ tag, title, role, notify, openModal, height = 1180 }) {
+  const access = ['Quality Inspector', 'General Manager'].includes(role) ? 'edit' : 'view';
   return (
     <section>
       <div className="flex items-center gap-3 mb-3 flex-wrap">
         <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">{tag}</span>
         <span className="text-[15px] font-semibold text-[#1A1A17]">{title}</span>
         <NeutralBadge role={role} />
+        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
+          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
+          {access === 'edit' ? 'Edit' : 'View only'}
+        </span>
       </div>
       <div className="border border-[#C9C9C3] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] bg-[#F4F4F2]">
         <div className="flex" style={{ height }}>
           <MiniRail />
           <div className="flex-1 min-w-0 flex flex-col">
-            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Fit-Up']} role={role} />
+            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Fit-Up']} role={role} access={access} />
             <div className="flex-1 overflow-hidden"><FitUpBody role={role} notify={notify} openModal={openModal} /></div>
           </div>
         </div>
@@ -391,11 +402,12 @@ function FitUpPhasePage() {
         <header className="mb-10">
           <p className="font-mono text-[12px] tracking-[0.12em] uppercase text-[#C2410C] font-semibold mb-2.5">Siteflow · Production · Phase 3</p>
           <h1 className="text-[26px] font-semibold tracking-tight mb-2">Fit-Up — phase page</h1>
-          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 3 of 5 adds an <span className="font-semibold text-[#1A1A17]">inspection form</span> and <span className="font-semibold text-[#1A1A17]">Pass / Fail</span> sign-off on top of the standard checklist. Shown for the Quality Inspector (owner) and the Project Manager (read-only). Pass / Approve, Fail / Reject, and Raise Dispute open confirmation dialogs.</p>
+          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 3 of 5 — Quality Inspector owns this phase with an <span className="font-semibold text-[#1A1A17]">inspection form</span> and <span className="font-semibold text-[#1A1A17]">Pass / Fail</span> sign-off. All 8 roles shown below. General Manager has full access. Finance Officer and Viewer are strict read-only.</p>
         </header>
 
         <div className="flex flex-col gap-12">
-          <FURoleFrame tag="State 1" title="Quality Inspector — owner, full controls" role="Quality Inspector" notify={notify} openModal={setModal} height={1220} />
+          <FURoleFrame tag="State 1" title="General Manager — full access, all controls across all phases" role="General Manager" notify={notify} openModal={setModal} height={1220} />
+          <FURoleFrame tag="State 2" title="Quality Inspector — owner, full controls" role="Quality Inspector" notify={notify} openModal={setModal} height={1220} />
 
           {/* modal trigger row — so reviewers can open dialogs without enabling Pass first */}
           <div>
@@ -408,15 +420,12 @@ function FitUpPhasePage() {
             <p className="mt-2.5 text-[12px] text-[#84837C]">In-page, Pass / Fail stay disabled until the 2 remaining required checklist items are completed; these buttons preview the dialogs directly.</p>
           </div>
 
-          <FURoleFrame tag="State 2" title="Project Manager — read-only, can comment & dispute" role="Project Manager" notify={notify} openModal={setModal} height={1180} />
-        </div>
-
-        <div className="mt-8 flex items-start gap-3 rounded-lg border border-[#DEDEDA] bg-white p-5">
-          <span className="w-9 h-9 rounded-md bg-[#E9F0FF] text-[#1D4ED8] grid place-items-center flex-none"><Icon name="eye" className="w-[18px] h-[18px]" /></span>
-          <div>
-            <h4 className="text-[14px] font-semibold text-[#1A1A17]">Project Manager on Fit-Up</h4>
-            <p className="text-[13px] text-[#57564F] mt-0.5 leading-relaxed">Read-only on phase progress (no Pass / Fail / Save / upload, checklist + inspection form static), but retains <span className="font-mono text-[#1A1A17]">po.comment.create</span> and <span className="font-mono text-[#1A1A17]">po.dispute.create</span> — so the comment input and a <span className="font-semibold text-[#1A1A17]">Raise Dispute</span> button stay in the comments card.</p>
-          </div>
+          <FURoleFrame tag="State 3" title="Planning Officer — read-only, can comment + raise dispute" role="Planning Officer" notify={notify} openModal={setModal} height={1120} />
+          <FURoleFrame tag="State 4" title="Project Manager — read-only, can comment + raise dispute" role="Project Manager" notify={notify} openModal={setModal} height={1120} />
+          <FURoleFrame tag="State 5" title="Quality Head — read-only, can comment" role="Quality Head" notify={notify} openModal={setModal} height={1120} />
+          <FURoleFrame tag="State 6" title="Finance Officer — read-only, no comment access" role="Finance Officer" notify={notify} openModal={setModal} height={1060} />
+          <FURoleFrame tag="State 7" title="Dispatch In-charge — read-only, can comment" role="Dispatch In-charge" notify={notify} openModal={setModal} height={1120} />
+          <FURoleFrame tag="State 8" title="Viewer — read-only, no comment or actions" role="Viewer" notify={notify} openModal={setModal} height={1060} />
         </div>
       </div>
 

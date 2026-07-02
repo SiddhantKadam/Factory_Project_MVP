@@ -3,8 +3,8 @@
    ============================================================ */
 
 const VA_ROLES = [
-  'Org Admin', 'General Manager', 'Planning Officer', 'Project Manager',
-  'Quality Inspector', 'Quality Head', 'Dispatch In-charge', 'Viewer',
+  'General Manager', 'Planning Officer', 'Project Manager', 'Quality Inspector', 'Quality Head',
+  'Finance Officer', 'Dispatch In-charge', 'Viewer',
 ];
 
 /* neutral role badge (#F0F0EE / #4B5563) */
@@ -64,13 +64,10 @@ function MiniRail() {
   );
 }
 
-/* ---- frame top bar with the Viewing-as control ---- */
-function FrameTopbar({ crumb, role }) {
-  const [open, setOpen] = React.useState(false);
-  const [val, setVal] = React.useState(role);
-  React.useEffect(() => setVal(role), [role]);
+/* ---- frame top bar — static role + access display (no dropdown; use stacked sections for role switching) ---- */
+function FrameTopbar({ crumb, role, access = 'view' }) {
   return (
-    <header className="bg-white border-b border-[#DEDEDA] px-4 py-2.5 flex items-center gap-3 flex-none relative z-30">
+    <header className="bg-white border-b border-[#DEDEDA] px-4 py-2.5 flex items-center gap-3 flex-none">
       <div className="flex items-center gap-1.5 text-[12px] text-[#57564F] min-w-0 flex-nowrap whitespace-nowrap overflow-hidden">
         {crumb.map((c, i) => (
           <React.Fragment key={i}>
@@ -82,18 +79,19 @@ function FrameTopbar({ crumb, role }) {
         ))}
       </div>
       <div className="flex-1" />
-      <div className="flex flex-col items-end">
-        <ViewingAs value={val} open={open} onToggle={() => setOpen(o => !o)} onPick={(r) => { setVal(r); setOpen(false); }} />
-        <span className="text-[10px] text-[#84837C] mt-0.5 hidden md:block">Preview only — role switching is for design review.</span>
+      <div className="flex items-center gap-2 flex-none">
+        <span className="text-[12px] text-[#84837C] font-medium hidden md:block">Viewing as</span>
+        <NeutralBadge role={role} />
+        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
+          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
+          {access === 'edit' ? 'Edit' : 'View only'}
+        </span>
       </div>
       <button className="w-9 h-9 rounded-md border border-[#DEDEDA] bg-white grid place-items-center text-[#57564F] hover:bg-[#FAFAF8] relative flex-none">
         <Icon name="bell" />
         <span className="absolute top-[7px] right-2 w-[7px] h-[7px] rounded-full bg-[#C2410C] border-[1.5px] border-white" />
       </button>
-      <div className="flex items-center gap-2 flex-none">
-        <NeutralBadge role={val} />
-        <span className="w-[30px] h-[30px] rounded-full bg-[#3C3A33] text-white grid place-items-center text-[12px] font-semibold font-mono">MD</span>
-      </div>
+      <span className="w-[30px] h-[30px] rounded-full bg-[#3C3A33] text-white grid place-items-center text-[12px] font-semibold font-mono flex-none">MD</span>
     </header>
   );
 }

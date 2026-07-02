@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    CUTTING PHASE PAGE — Phase 1 of 5
    Two role states: PM (owner) · GM (read-only)
    ============================================================ */
@@ -29,6 +29,14 @@ const CUT_DOC_TYPES = ['Cutting Plan', 'Photos', 'Report', 'Other'];
 
 const CUT_COMMENTS = [
   { who: 'Rajesh Kumar', role: 'Project Manager', text: 'Drawings updated to rev B — awaiting new cut schedule.', time: '11 Jun 2026 · 14:32' },
+];
+
+const CUT_PHASES = [
+  { n: 1, name: 'Cutting',  status: 'In Progress' },
+  { n: 2, name: 'Beamline', status: 'Pending', locked: true },
+  { n: 3, name: 'Fit-Up',   status: 'Pending', locked: true },
+  { n: 4, name: 'QC',       status: 'Pending', locked: true },
+  { n: 5, name: 'Dispatch', status: 'Pending', locked: true },
 ];
 
 /* ---- checklist row: interactive (owner) or static (read-only) ---- */
@@ -83,8 +91,9 @@ function CutDocRow({ doc }) {
 
 /* ---- the phase page body for a given role ---- */
 function CuttingBody({ role, notify }) {
-  const owner = role === 'Project Manager';
-  const viewer = role === 'Viewer';
+  const owner = role === 'Project Manager' || role === 'General Manager';
+  const canComment = !['Finance Officer', 'Viewer'].includes(role);
+  const canDispute = role === 'General Manager' || (!owner && canComment);
   const [checklist, setChecklist] = React.useState(CUT_CHECKLIST_INIT);
 
   const toggle = (i) => {
@@ -195,19 +204,22 @@ function CuttingBody({ role, notify }) {
                 </li>
               ))}
             </ol>
-            {/* comment input: present for PM + GM, hidden for Viewer */}
-            {!viewer ? (
+            {canComment ? (
               <div className="flex flex-col gap-2">
                 <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
-                <button
-                  className="self-end inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md"
-                  onClick={() => notify('Comment posted')}
-                >
-                  Post
-                </button>
+                <div className="flex items-center justify-between gap-2">
+                  {canDispute && (
+                    <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => notify('Dispute raised')}>
+                      <Icon name="disputes" className="w-3.5 h-3.5" /> Raise Dispute
+                    </button>
+                  )}
+                  <button className="ml-auto inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
+                </div>
               </div>
             ) : (
-              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2">Viewer — no comment input</div>
+              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2">
+                {role === 'Finance Officer' ? 'Finance Officer — financial view only, no comments' : 'Viewer — read-only, no comment access'}
+              </div>
             )}
           </div>
         </div>
@@ -261,7 +273,7 @@ function CuttingBody({ role, notify }) {
           <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
             <h3 className="text-[15px] font-semibold text-[#1A1A17] mb-2.5">All phases</h3>
             <ul className="flex flex-col gap-1.5">
-              {PHASES.map((p) => (
+              {CUT_PHASES.map((p) => (
                 <li key={p.n} className={'flex items-center gap-2 px-2 py-1.5 rounded-md ' + (p.n === 1 ? 'bg-[#E9F0FF]' : '')}>
                   <span className="w-5 h-5 rounded-full grid place-items-center text-[11px] font-mono font-semibold flex-none" style={p.status === 'Completed' ? { background: '#15803D', color: '#fff' } : p.status === 'In Progress' ? { background: '#1D4ED8', color: '#fff' } : { background: '#F0F0EE', color: '#84837C' }}>{p.n}</span>
                   <span className={'text-[13px] ' + (p.n === 1 ? 'font-semibold text-[#1D4ED8]' : 'text-[#1A1A17]')}>{p.name}</span>
@@ -278,18 +290,23 @@ function CuttingBody({ role, notify }) {
 
 /* ---- one labelled role frame ---- */
 function RoleFrame({ tag, title, role, notify }) {
+  const access = ['Project Manager', 'General Manager'].includes(role) ? 'edit' : 'view';
   return (
     <section>
       <div className="flex items-center gap-3 mb-3 flex-wrap">
         <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">{tag}</span>
         <span className="text-[15px] font-semibold text-[#1A1A17]">{title}</span>
         <NeutralBadge role={role} />
+        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
+          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
+          {access === 'edit' ? 'Edit' : 'View only'}
+        </span>
       </div>
       <div className="border border-[#C9C9C3] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] bg-[#F4F4F2]">
         <div className="flex" style={{ height: 880 }}>
           <MiniRail />
           <div className="flex-1 min-w-0 flex flex-col">
-            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Cutting']} role={role} />
+            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'Cutting']} role={role} access={access} />
             <div className="flex-1 overflow-hidden"><CuttingBody role={role} notify={notify} /></div>
           </div>
         </div>
@@ -310,21 +327,18 @@ function CuttingPhasePage() {
         <header className="mb-10">
           <p className="font-mono text-[12px] tracking-[0.12em] uppercase text-[#C2410C] font-semibold mb-2.5">Siteflow · Production · Phase 1</p>
           <h1 className="text-[26px] font-semibold tracking-tight mb-2">Cutting — phase page</h1>
-          <p className="text-[16px] text-[#57564F] max-w-[64ch]">Phase 1 of 5, built on the shared phase-page shell. Shown in two role states — the Project Manager (owner) with full controls, and the General Manager read-only view where write affordances are <span className="font-semibold text-[#1A1A17]">hidden, not disabled</span>. Use the “Viewing as” control in each frame's top bar to preview.</p>
+          <p className="text-[16px] text-[#57564F] max-w-[64ch]">Phase 1 of 5 — Project Manager owns this phase with full controls. All 8 roles shown below. General Manager has full access across all phases. Non-owner operational roles can comment and raise disputes; Finance Officer and Viewer are strict read-only. Write affordances are <span className="font-semibold text-[#1A1A17]">hidden, not disabled</span>.</p>
         </header>
 
         <div className="flex flex-col gap-12">
-          <RoleFrame tag="State 1" title="Project Manager — owner, full controls" role="Project Manager" notify={notify} />
-          <RoleFrame tag="State 2" title="General Manager — read-only view" role="General Manager" notify={notify} />
-        </div>
-
-        {/* viewer annotation */}
-        <div className="mt-8 flex items-start gap-3 rounded-lg border border-[#DEDEDA] bg-white p-5">
-          <span className="w-9 h-9 rounded-md bg-[#F0F0EE] text-[#57564F] grid place-items-center flex-none"><Icon name="eye" className="w-[18px] h-[18px]" /></span>
-          <div>
-            <h4 className="text-[14px] font-semibold text-[#1A1A17]">Viewer role</h4>
-            <p className="text-[13px] text-[#57564F] mt-0.5 leading-relaxed">Identical to the General Manager read-only view above, but the <span className="font-semibold text-[#1A1A17]">comment input is also hidden</span> — viewers can read the phase and its comments but not contribute.</p>
-          </div>
+          <RoleFrame tag="State 1" title="General Manager — full access, all controls across all phases" role="General Manager" notify={notify} />
+          <RoleFrame tag="State 2" title="Project Manager — owner, full controls" role="Project Manager" notify={notify} />
+          <RoleFrame tag="State 3" title="Planning Officer — read-only, can comment + raise dispute" role="Planning Officer" notify={notify} />
+          <RoleFrame tag="State 4" title="Quality Inspector — read-only, can comment" role="Quality Inspector" notify={notify} />
+          <RoleFrame tag="State 5" title="Quality Head — read-only, can comment" role="Quality Head" notify={notify} />
+          <RoleFrame tag="State 6" title="Finance Officer — read-only, no comment access" role="Finance Officer" notify={notify} />
+          <RoleFrame tag="State 7" title="Dispatch In-charge — read-only, can comment" role="Dispatch In-charge" notify={notify} />
+          <RoleFrame tag="State 8" title="Viewer — read-only, no comment or actions" role="Viewer" notify={notify} />
         </div>
       </div>
 
