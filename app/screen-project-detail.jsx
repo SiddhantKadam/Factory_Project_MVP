@@ -16,13 +16,13 @@ const PDR_ACCESS = {
   'Project Manager': {
     'Project Overview':  { level: 'editable', note: 'Can update status and target date' },
     'Stage Timeline':    { level: 'editable', note: 'Cutting + Beamline (stages 1–2)' },
-    'Purchase Orders':   { level: 'readonly', note: 'View-only — cannot create POs' },
+    'Purchase Orders':   { level: 'hidden',   note: null },
     'Financial Summary': { level: 'hidden',   note: null },
     'Documents':         { level: 'readonly', note: 'Can download; cannot upload' },
     'Activity Log':      { level: 'visible',  note: 'Full audit trail' },
   },
   'Quality Inspector': {
-    'Project Overview':  { level: 'readonly', note: 'View-only' },
+    'Project Overview':  { level: 'hidden',   note: null },
     'Stage Timeline':    { level: 'editable', note: 'Fit-Up Phase (stage 3) only' },
     'Purchase Orders':   { level: 'hidden',   note: null },
     'Financial Summary': { level: 'hidden',   note: null },
@@ -30,15 +30,15 @@ const PDR_ACCESS = {
     'Activity Log':      { level: 'visible',  note: 'Own stage events' },
   },
   'Quality Head': {
-    'Project Overview':  { level: 'readonly', note: 'View-only' },
+    'Project Overview':  { level: 'hidden',   note: null },
     'Stage Timeline':    { level: 'editable', note: 'QC Phase (stage 4) — final sign-off' },
-    'Purchase Orders':   { level: 'readonly', note: 'View for quality reference' },
+    'Purchase Orders':   { level: 'hidden',   note: null },
     'Financial Summary': { level: 'hidden',   note: null },
     'Documents':         { level: 'readonly', note: 'All quality & inspection reports' },
     'Activity Log':      { level: 'visible',  note: 'Full audit trail' },
   },
   'Finance Officer': {
-    'Project Overview':  { level: 'readonly', note: 'View-only' },
+    'Project Overview':  { level: 'hidden',   note: null },
     'Stage Timeline':    { level: 'hidden',   note: null },
     'Purchase Orders':   { level: 'readonly', note: 'View PO values and status' },
     'Financial Summary': { level: 'editable', note: 'Can record payments, update budget' },
@@ -46,15 +46,15 @@ const PDR_ACCESS = {
     'Activity Log':      { level: 'visible',  note: 'Finance events visible' },
   },
   'Dispatch In-charge': {
-    'Project Overview':  { level: 'readonly', note: 'View-only' },
+    'Project Overview':  { level: 'hidden',   note: null },
     'Stage Timeline':    { level: 'editable', note: 'Dispatch Phase (stage 5) — packing & shipping' },
-    'Purchase Orders':   { level: 'readonly', note: 'View delivery and PO details' },
+    'Purchase Orders':   { level: 'hidden',   note: null },
     'Financial Summary': { level: 'hidden',   note: null },
     'Documents':         { level: 'readonly', note: 'Shipping docs and packing lists' },
     'Activity Log':      { level: 'visible',  note: 'Dispatch-related events' },
   },
   'Viewer': {
-    'Project Overview':  { level: 'readonly', note: 'View-only' },
+    'Project Overview':  { level: 'hidden',   note: null },
     'Stage Timeline':    { level: 'readonly', note: 'No actions available' },
     'Purchase Orders':   { level: 'hidden',   note: null },
     'Financial Summary': { level: 'hidden',   note: null },
@@ -528,53 +528,47 @@ function PDRRoleView({ project, role }) {
   );
 }
 
-/* ---- role access matrix table ---- */
-function PDRAccessMatrix() {
-  const sections = Object.keys(PDR_ACCESS['Planning Officer']);
+/* ---- role preview header with dropdown ---- */
+function PDRRolePreviewHeader({ activeRole, setActiveRole }) {
+  const [dropOpen, setDropOpen] = React.useState(false);
+  const style = activeRole ? PDR_ROLE_STYLE[activeRole] : null;
   return (
-    <div className="bg-white border border-[#DEDEDA] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] mb-6">
-      <div className="px-5 py-3.5 border-b border-[#DEDEDA] bg-[#FAFAF8]">
-        <h2 className="text-[14px] font-semibold text-[#1A1A17]">Role Access Matrix</h2>
-        <p className="text-[12px] text-[#84837C] mt-0.5">Which sections each role can see and interact with — based on industry practice</p>
+    <div className="bg-white border border-[#DEDEDA] rounded-lg shadow-[0_1px_2px_rgba(26,26,23,0.05)] px-5 py-4 mb-6 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h2 className="text-[15px] font-bold text-[#1A1A17]">Preview the Project as Role</h2>
+        <p className="text-[12px] text-[#84837C] mt-0.5">Select a role to see what that user sees — editable fields, visible sections, and available actions</p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[12.5px]">
-          <thead>
-            <tr>
-              <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-[#57564F] bg-[#FAFAF8] border-b border-[#DEDEDA] whitespace-nowrap">Section</th>
-              {PDR_ROLES.map(role => {
-                const s = PDR_ROLE_STYLE[role];
+      <div className="relative flex-none">
+        <button
+          className={'inline-flex items-center gap-2 h-9 rounded-md border bg-white px-3 text-[13px] font-semibold text-[#1A1A17] ' + (dropOpen ? 'border-[#C2410C] ring-[3px] ring-[#C2410C]/25' : 'border-[#C9C9C3] hover:border-[#84837C]')}
+          onClick={() => setDropOpen(o => !o)}
+        >
+          {style && <span className="w-2 h-2 rounded-full flex-none" style={{ background: style.dot }} />}
+          <span style={style ? { color: style.text } : {}}>{activeRole || 'Select a role'}</span>
+          <Icon name="chevron" className={'w-3 h-3 text-[#84837C] transition-transform ' + (dropOpen ? 'rotate-180' : '')} />
+        </button>
+        {dropOpen && (
+          <>
+            <div className="fixed inset-0 z-[25]" onClick={() => setDropOpen(false)} />
+            <div className="absolute right-0 top-[calc(100%+6px)] z-40 w-[220px] bg-white border border-[#DEDEDA] rounded-lg shadow-[0_8px_24px_rgba(26,26,23,0.14)] py-1.5">
+              {PDR_ROLES.map(r => {
+                const s = PDR_ROLE_STYLE[r];
+                const isOn = r === activeRole;
                 return (
-                  <th key={role} className="px-3 py-2.5 bg-[#FAFAF8] border-b border-[#DEDEDA] border-l border-l-[#DEDEDA] text-center whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: s.text }}>
-                      <span className="w-2 h-2 rounded-full flex-none" style={{ background: s.dot }} />
-                      {role}
-                    </span>
-                  </th>
+                  <button key={r}
+                    className={'w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] ' + (isOn ? 'font-semibold' : 'text-[#1A1A17] hover:bg-[#FAFAF8]')}
+                    style={isOn ? { background: s.bg, color: s.text } : {}}
+                    onClick={() => { setActiveRole(r); setDropOpen(false); }}
+                  >
+                    <span className="w-2 h-2 rounded-full flex-none" style={{ background: s.dot }} />
+                    {r}
+                    {isOn && <Icon name="check" className="w-4 h-4 ml-auto" strokeWidth={2.5} />}
+                  </button>
                 );
               })}
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((section, i) => (
-              <tr key={section} className={i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF8]'}>
-                <td className="px-4 py-3 font-semibold text-[#1A1A17] border-b border-[#DEDEDA] text-[12.5px] whitespace-nowrap">{section}</td>
-                {PDR_ROLES.map(role => {
-                  const a = PDR_ACCESS[role][section];
-                  const c = LEVEL_CFG[a.level] || LEVEL_CFG.readonly;
-                  return (
-                    <td key={role} className="px-3 py-3 border-b border-[#DEDEDA] border-l border-l-[#DEDEDA] text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="inline-block text-[11px] font-bold rounded-full px-2.5 py-0.5 font-mono whitespace-nowrap" style={{ color: c.fg, background: c.bg }}>{c.label}</span>
-                        {a.note && <span className="text-[10px] text-[#84837C] leading-tight text-center hidden xl:block">{a.note}</span>}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -630,10 +624,11 @@ function ScreenProjectDetail({ notify }) {
       const stored = localStorage.getItem('pd_project');
       if (stored) return JSON.parse(stored);
     } catch(e) {}
-    return window.PD_PROJECTS ? window.PD_PROJECTS[0] : null;
+    if (!window.PD_PROJECTS) return null;
+    return window.PD_PROJECTS.find((p) => p.id === 'PROJ-2026-0018') || window.PD_PROJECTS[0];
   });
 
-  const [activeRole, setActiveRole] = React.useState(null);
+  const [activeRole, setActiveRole] = React.useState(PDR_ROLES[0]);
 
   if (!project) return (
     <div className="flex flex-col h-full">
@@ -649,38 +644,8 @@ function ScreenProjectDetail({ notify }) {
         <div className="max-w-[1280px] mx-auto">
 
           <PDRProjectHeader project={project} />
-          <PDRAccessMatrix />
-
-          {/* role filter + section title */}
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-            <div>
-              <h2 className="text-[16px] font-bold text-[#1A1A17]">Role-by-role detail view</h2>
-              <p className="text-[12px] text-[#84837C] mt-0.5">Each role sees only what's permitted — editable fields, visible sections, and available actions differ per role</p>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                className={'text-[12px] font-semibold px-3 py-1.5 rounded-md border ' + (activeRole === null ? 'bg-[#1A1A17] text-white border-[#1A1A17]' : 'border-[#C9C9C3] text-[#57564F] hover:bg-[#F0F0EE]')}
-                onClick={() => setActiveRole(null)}>All roles</button>
-              {PDR_ROLES.map(r => {
-                const s = PDR_ROLE_STYLE[r];
-                const isActive = activeRole === r;
-                return (
-                  <button key={r}
-                    className={'text-[12px] font-semibold px-3 py-1.5 rounded-md border transition-colors ' + (isActive ? 'text-white border-transparent' : 'border-[#C9C9C3] text-[#57564F] hover:bg-[#F0F0EE]')}
-                    style={isActive ? { background: s.dot, borderColor: s.dot } : {}}
-                    onClick={() => setActiveRole(r === activeRole ? null : r)}>
-                    {r}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-8">
-            {(activeRole ? [activeRole] : PDR_ROLES).map(role => (
-              <PDRRoleView key={role} project={project} role={role} />
-            ))}
-          </div>
+          <PDRRolePreviewHeader activeRole={activeRole} setActiveRole={setActiveRole} />
+          {activeRole && <PDRRoleView project={project} role={activeRole} />}
 
         </div>
       </div>

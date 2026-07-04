@@ -1,7 +1,5 @@
 /* ============================================================
    QC (PAINTING & FINISHING) PHASE — Phase 4 of 5
-   Roles: Quality Head (owner) · Dispatch In-charge (read-only)
-   Dialogs: Approve QC · Raise Quality Issue
    ============================================================ */
 
 const QC_PROJECT = {
@@ -9,25 +7,31 @@ const QC_PROJECT = {
   client: 'Acme Infrastructure Ltd.',
   po: 'PO-2026-0042',
   target: '30 Jun 2026',
-  assignee: 'Meera Joshi',
+  assignee: 'Suresh Pillai',
 };
 
 const QC_CHECKLIST_INIT = [
-  { t: 'Surface preparation inspected',          req: true, done: true,  by: 'Meera Joshi', date: '13 Jun 2026' },
-  { t: 'Primer coat applied and dried',          req: true, done: true,  by: 'Meera Joshi', date: '13 Jun 2026' },
-  { t: 'Paint thickness verified (DFT check)',   req: true, done: true,  by: 'Meera Joshi', date: '13 Jun 2026' },
-  { t: 'Finishing quality meets spec',           req: true, done: true,  by: 'Meera Joshi', date: '13 Jun 2026' },
-  { t: 'QC report completed and signed off',     req: true, done: true,  by: 'Meera Joshi', date: '13 Jun 2026' },
-  { t: 'Project marked ready for dispatch',      req: true, done: false },
+  { t: 'Surface preparation (blasting) verified',  req: true,  done: true,  by: 'Suresh Pillai', date: '15 Jun 2026' },
+  { t: 'Primer coat applied and dried',             req: true,  done: true,  by: 'Suresh Pillai', date: '15 Jun 2026' },
+  { t: 'DFT readings within spec (all zones)',      req: true,  done: true,  by: 'Suresh Pillai', date: '16 Jun 2026' },
+  { t: 'Top coat applied and cured',                req: true,  done: true,  by: 'Suresh Pillai', date: '16 Jun 2026' },
+  { t: 'Final visual inspection — no defects',      req: true,  done: true,  by: 'Suresh Pillai', date: '16 Jun 2026' },
+  { t: 'QC certificate signed',                     req: true,  done: false },
 ];
 
 const QC_DOCS = [
-  { n: 'qc-report-final.pdf',    t: 'QC Report', s: '2.4 MB', by: 'Meera Joshi', d: '13 Jun 2026', pdf: true },
-  { n: 'paint-dft-readings.jpg', t: 'Photo',     s: '680 KB', by: 'Meera Joshi', d: '13 Jun 2026', pdf: false },
+  { n: 'dft-readings-sheet.pdf',  t: 'DFT Report',  s: '1.0 MB', by: 'Suresh Pillai', d: '16 Jun 2026', pdf: true  },
+  { n: 'surface-prep-photo.jpg',  t: 'Photo',       s: '1.4 MB', by: 'Suresh Pillai', d: '15 Jun 2026', pdf: false },
+  { n: 'qc-certificate-v1.pdf',   t: 'Certificate', s: '600 KB', by: 'Suresh Pillai', d: '16 Jun 2026', pdf: true  },
 ];
-const QC_DOC_TYPES = ['QC Report', 'Photos', 'Other'];
+const QC_DOC_TYPES = ['DFT Report', 'Photo', 'Certificate', 'Other'];
 
-const QC_PHASES_DATA = [
+const QC_COMMENTS = [
+  { who: 'Suresh Pillai',   role: 'Quality Head',       text: 'All DFT readings within 80–120 µm range. Surface finish is uniform — ready for final certificate sign-off.', time: '16 Jun 2026 · 14:00' },
+  { who: 'Ramesh Gupta',    role: 'Dispatch In-charge',  text: 'Acknowledged. Will prepare dispatch checklist once QC certificate is signed.', time: '16 Jun 2026 · 15:30' },
+];
+
+const QC_PHASES = [
   { n: 1, name: 'Cutting',  status: 'Completed' },
   { n: 2, name: 'Beamline', status: 'Completed' },
   { n: 3, name: 'Fit-Up',   status: 'Completed' },
@@ -35,350 +39,449 @@ const QC_PHASES_DATA = [
   { n: 5, name: 'Dispatch', status: 'Pending', locked: true },
 ];
 
-const QC_COMMENTS = [
-  { who: 'Meera Joshi', role: 'Quality Head', text: 'DFT readings all within spec (avg 142µm). Final sign-off pending dispatch readiness.', time: '13 Jun 2026 · 15:40' },
+const QC_DFT = [
+  { zone: 'Zone A — Web',          prep: 'Sa 2.5', primer: 82, topcoat: 118 },
+  { zone: 'Zone B — Top Flange',   prep: 'Sa 2.5', primer: 85, topcoat: 112 },
+  { zone: 'Zone C — Bot Flange',   prep: 'Sa 2.5', primer: 80, topcoat: 115 },
+  { zone: 'Zone D — Stiffeners',   prep: 'Sa 2.5', primer: 88, topcoat: 110 },
 ];
 
-const qcIpt = 'w-full rounded-md border border-[#C9C9C3] bg-white text-[14px] text-[#1A1A17] px-3 py-2.5 focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35';
-const qcSelStyle = { backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%2357564F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' };
+const QC_NDT = [
+  ['W-01', 'Visual + UT', '100%', <PTag tone="ok">Accept</PTag>,          '—'],
+  ['W-02', 'MPI',         '100%', <PTag tone="ok">Accept</PTag>,          '—'],
+  ['W-03', 'UT',          '20%',  <PTag tone="no">Reject → repaired</PTag>,'NCR-07 closed'],
+  ['W-04', 'DPI',         '100%', <PTag tone="wait">Pending</PTag>,        '—'],
+];
 
-function QCModal({ children, onClose, max = '460px' }) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#1A1A17]/40" onClick={onClose}></div>
-      <div className="relative w-full bg-white rounded-xl border border-[#DEDEDA] shadow-[0_20px_50px_rgba(26,26,23,0.25)] overflow-hidden po-rise" style={{ maxWidth: max }}>{children}</div>
-    </div>
-  );
-}
+const QC_ITP = [
+  ['Dimensional Report', 'DR-018.pdf ✓'],
+  ['TPI Witness (Lloyd’s)', 'Witnessed 16 Jun ✓'],
+  ['QC Certificate', 'Pending sign ✎'],
+];
 
-/* Approve QC */
-function ApproveQCModal({ onClose, notify }) {
-  const [notes, setNotes] = React.useState('');
-  const missing = !notes.trim();
-  return (
-    <QCModal onClose={onClose}>
-      <div className="p-6">
-        <div className="flex items-start gap-3.5">
-          <span className="w-11 h-11 rounded-full grid place-items-center flex-none" style={{ background: '#E6F6EC', color: '#15803D' }}><Icon name="quality" className="w-6 h-6" strokeWidth={1.8} /></span>
-          <div><h3 className="text-[18px] font-semibold text-[#1A1A17] leading-tight">Approve QC Sign-Off</h3>
-            <p className="text-[13px] text-[#57564F] mt-1.5 leading-relaxed">Confirm that painting, finishing, and all quality checks have passed. Approving will mark Phase 4 complete and unlock Phase 5 (Dispatch).</p></div>
-        </div>
-        <div className="mt-4">
-          <div className="text-[12px] font-semibold uppercase tracking-wide text-[#84837C] font-mono mb-1.5">QC sign-off notes · required</div>
-          <textarea className={qcIpt + ' min-h-[80px] resize-y'} placeholder="Confirm final quality approval…" value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </div>
-      </div>
-      <div className="px-6 py-4 bg-[#FAFAF8] border-t border-[#DEDEDA] flex items-center justify-end gap-2.5">
-        <button className="px-4 py-2.5 rounded-md border border-[#C9C9C3] bg-white hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px]" onClick={onClose}>Cancel</button>
-        <button className={'px-4 py-2.5 rounded-md font-semibold text-[14px] inline-flex items-center gap-2 ' + (missing ? 'bg-[#FAFAF8] text-[#84837C] border border-[#DEDEDA] cursor-not-allowed' : 'bg-[#15803D] hover:bg-[#11652F] text-white')} disabled={missing} onClick={() => { notify('QC approved ✓ — Dispatch unlocked'); onClose(); }}><Icon name="check" className="w-[18px] h-[18px]" strokeWidth={2.2} /> Approve QC</button>
-      </div>
-    </QCModal>
-  );
-}
+const QC_ACTIVITY = [
+  { who: 'S. Pillai',  action: 'issued final dimensional report', detail: 'DR-018', type: 'edit', time: '16 Jun · 14:00' },
+  { who: 'Lloyd’s TPI', action: 'witnessed ITP hold point', type: 'approve', time: '16 Jun · 12:30' },
+  { who: 'S. Pillai',  action: 'recorded DFT readings — all zones in spec', type: 'edit', time: '16 Jun · 11:15' },
+  { who: 'S. Pillai',  action: 'closed', detail: 'NCR-07', note: 'W-03 re-inspected after repair — accepted.', type: 'done', time: '15 Jun · 16:20' },
+  { who: 'S. Pillai',  action: 'raised', detail: 'NCR-07', note: 'UT on W-03 found porosity — sent for repair.', type: 'alert', time: '15 Jun · 10:40' },
+  { who: 'System',     action: 'unlocked QC after Fit-Up completed', type: 'system', time: '15 Jun · 08:00' },
+];
 
-/* Raise Quality Issue */
-function RaiseIssueModal({ onClose, notify }) {
-  const [desc, setDesc] = React.useState('');
-  const missing = !desc.trim();
+/* ── modals ── */
+function ApproveQCModal({ onClose, onConfirm }) {
   return (
-    <QCModal onClose={onClose} max="500px">
-      <div className="p-6">
-        <div className="flex items-start gap-3.5">
-          <span className="w-11 h-11 rounded-full grid place-items-center flex-none" style={{ background: '#FCEEE4', color: '#C2410C' }}><Icon name="disputes" className="w-6 h-6" strokeWidth={1.9} /></span>
-          <div><h3 className="text-[18px] font-semibold text-[#1A1A17] leading-tight">Raise Quality Issue</h3>
-            <p className="text-[13px] text-[#57564F] mt-1.5 leading-relaxed">Flag a quality problem found during painting &amp; finishing.</p></div>
-        </div>
-        <div className="mt-4 flex flex-col gap-3.5">
-          <div>
-            <label className="text-[13px] font-semibold text-[#1A1A17] block mb-1.5">Issue Type</label>
-            <select className={qcIpt + ' pr-9 appearance-none cursor-pointer'} style={qcSelStyle}>
-              <option>Paint thickness failure</option><option>Surface defect</option><option>Finishing not to spec</option><option>DFT check failed</option><option>Documentation missing</option><option>Other</option>
-            </select>
+    <div className="fixed inset-0 z-50 grid place-items-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-[420px] max-w-[calc(100vw-32px)] overflow-hidden">
+        <div className="h-1.5 bg-[#7E22CE]" />
+        <div className="p-6">
+          <div className="w-12 h-12 rounded-full bg-[#F5F3FF] grid place-items-center mb-4">
+            <Icon name="check" className="w-6 h-6 text-[#7E22CE]" strokeWidth={2.5} />
           </div>
-          <div>
-            <label className="text-[13px] font-semibold text-[#1A1A17] block mb-1.5">Description <span className="text-[#C2410C]">*</span></label>
-            <textarea className={qcIpt + ' min-h-[80px] resize-y'} placeholder="Describe the quality issue in detail…" value={desc} onChange={(e) => setDesc(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-[13px] font-semibold text-[#1A1A17] block mb-1.5">Severity</label>
-            <select className={qcIpt + ' pr-9 appearance-none cursor-pointer'} style={qcSelStyle}><option>Minor</option><option>Major</option><option>Critical</option></select>
-          </div>
-          <div>
-            <label className="text-[13px] font-semibold text-[#1A1A17] block mb-1.5">Attach evidence <span className="text-[#84837C] font-normal">(optional)</span></label>
-            <button className="w-full inline-flex items-center gap-2 rounded-md border border-dashed border-[#C9C9C3] bg-[#FAFAF8] text-[#84837C] text-[13px] px-3 py-2.5 hover:border-[#84837C]"><Icon name="paperclip" className="w-4 h-4" /> Choose file…</button>
+          <h2 className="text-[18px] font-bold text-[#1A1A17] mb-1">Approve QC</h2>
+          <p className="text-[14px] text-[#57564F] mb-4 leading-relaxed">Approving will mark QC as complete and unlock the Dispatch phase. Ensure the QC certificate is signed before confirming.</p>
+          <textarea className="w-full rounded-xl border border-[#C9C9C3] text-[14px] px-4 py-3 min-h-[80px] resize-none focus:outline-none focus:border-[#7E22CE] focus:ring-2 focus:ring-[#7E22CE]/20" placeholder="QC approval notes (optional)…" />
+          <div className="flex gap-3 mt-4">
+            <button className="flex-1 h-10 rounded-xl border border-[#DEDEDA] text-[14px] font-semibold text-[#57564F] hover:bg-[#FAFAF8]" onClick={onClose}>Cancel</button>
+            <button className="flex-1 h-10 rounded-xl bg-[#7E22CE] text-white text-[14px] font-semibold hover:bg-[#6B21A8]" onClick={onConfirm}>Approve QC</button>
           </div>
         </div>
-      </div>
-      <div className="px-6 py-4 bg-[#FAFAF8] border-t border-[#DEDEDA]">
-        <div className="flex items-center justify-end gap-2.5">
-          <button className="px-4 py-2.5 rounded-md border border-[#C9C9C3] bg-white hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px]" onClick={onClose}>Cancel</button>
-          <button className={'px-4 py-2.5 rounded-md font-semibold text-[14px] inline-flex items-center gap-2 ' + (missing ? 'bg-[#FAFAF8] text-[#84837C] border border-[#DEDEDA] cursor-not-allowed' : 'bg-[#C2410C] hover:bg-[#9A330A] text-white')} disabled={missing} onClick={() => { notify('Quality issue raised'); onClose(); }}><Icon name="disputes" className="w-[18px] h-[18px]" /> Raise Issue</button>
-        </div>
-        <p className="text-[12px] text-[#84837C] mt-2.5 text-right">A quality issue will pause phase progress until resolved by the Quality Head.</p>
-      </div>
-    </QCModal>
-  );
-}
-
-function QCDocRow({ doc }) {
-  return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-[#F0F0EE] last:border-0">
-      <span className={'w-9 h-9 rounded-md grid place-items-center flex-none ' + (doc.pdf ? 'bg-[#FCECEC] text-[#B91C1C]' : 'bg-[#E9F0FF] text-[#1D4ED8]')}><Icon name={doc.pdf ? 'pdf' : 'image'} className="w-[18px] h-[18px]" strokeWidth={1.5} /></span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2"><span className="text-[13px] font-semibold font-mono text-[#1A1A17] truncate">{doc.n}</span><span className="text-[10px] font-semibold rounded-full px-1.5 py-0.5 flex-none" style={{ color: '#57564F', background: '#F0F0EE' }}>{doc.t}</span></div>
-        <div className="text-[11px] font-mono text-[#84837C] mt-0.5">{doc.s} · {doc.by} · {doc.d}</div>
-      </div>
-      <button className="w-8 h-8 rounded-md grid place-items-center text-[#57564F] hover:bg-[#F0F0EE] flex-none" aria-label="Download"><Icon name="upload" className="w-[18px] h-[18px] rotate-180" /></button>
-    </div>
-  );
-}
-
-/* related phases highlighting QC→Dispatch */
-function QCRelatedPhases() {
-  return (
-    <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-      <h3 className="text-[15px] font-semibold text-[#1A1A17] mb-2.5">All phases</h3>
-      <ul className="flex flex-col gap-1.5">
-        {QC_PHASES_DATA.map((p) => (
-          <li key={p.n} className={'flex items-center gap-2 px-2 py-1.5 rounded-md ' + (p.n === 4 ? 'bg-[#E9F0FF]' : '')}>
-            <span className="w-5 h-5 rounded-full grid place-items-center text-[11px] font-mono font-semibold flex-none" style={p.status === 'Completed' ? { background: '#15803D', color: '#fff' } : p.status === 'In Progress' ? { background: '#1D4ED8', color: '#fff' } : { background: '#F0F0EE', color: '#84837C' }}>{p.n}</span>
-            <span className={'text-[13px] ' + (p.n === 4 ? 'font-semibold text-[#1D4ED8]' : 'text-[#1A1A17]')}>{p.name}</span>
-            <span className="ml-auto"><PhasePill status={p.status} locked={p.locked} /></span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-3 pt-3 border-t border-[#F0F0EE] flex items-start gap-2 text-[12px] text-[#57564F]">
-        <Icon name="lock" className="w-3.5 h-3.5 text-[#84837C] flex-none mt-0.5" strokeWidth={2} />
-        <span>Dispatch will unlock once QC is approved.</span>
       </div>
     </div>
   );
 }
 
-function QCBody({ role, notify, openModal }) {
-  const owner = role === 'Quality Head' || role === 'General Manager';
+function QCIssueModal({ onClose, onConfirm }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-[420px] max-w-[calc(100vw-32px)] overflow-hidden">
+        <div className="h-1.5 bg-[#B91C1C]" />
+        <div className="p-6">
+          <div className="w-12 h-12 rounded-full bg-[#FEE2E2] grid place-items-center mb-4">
+            <Icon name="x" className="w-6 h-6 text-[#B91C1C]" strokeWidth={2.5} />
+          </div>
+          <h2 className="text-[18px] font-bold text-[#1A1A17] mb-1">Raise Quality Issue</h2>
+          <p className="text-[14px] text-[#57564F] mb-4 leading-relaxed">Describe the quality defect found. The phase will be flagged and the project team will be notified for rework.</p>
+          <textarea className="w-full rounded-xl border border-[#C9C9C3] text-[14px] px-4 py-3 min-h-[80px] resize-none focus:outline-none focus:border-[#B91C1C] focus:ring-2 focus:ring-[#B91C1C]/20" placeholder="Describe the quality issue…" />
+          <div className="flex gap-3 mt-4">
+            <button className="flex-1 h-10 rounded-xl border border-[#DEDEDA] text-[14px] font-semibold text-[#57564F] hover:bg-[#FAFAF8]" onClick={onClose}>Cancel</button>
+            <button className="flex-1 h-10 rounded-xl bg-[#B91C1C] text-white text-[14px] font-semibold hover:bg-[#991B1B]" onClick={onConfirm}>Submit Issue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QCBody({ role, access, notify }) {
+  const acc        = PHASE_ACCENT['QC'];
+  const owner      = access === 'edit';
   const canComment = !['Finance Officer', 'Viewer'].includes(role);
   const canDispute = role === 'General Manager' || (!owner && canComment);
-  const [checklist, setChecklist] = React.useState(QC_CHECKLIST_INIT);
-  const toggle = (i) => { if (!owner) return; setChecklist((p) => p.map((it, idx) => idx === i ? { ...it, done: !it.done, by: !it.done ? 'Meera Joshi' : undefined, date: !it.done ? '13 Jun 2026' : undefined } : it)); };
-  const doneCount = checklist.filter((c) => c.done).length;
-  const reqLeft = checklist.filter((c) => c.req && !c.done).length;
-  const pct = Math.round((doneCount / checklist.length) * 100);
+
+  const [checklist, setChecklist]     = React.useState(QC_CHECKLIST_INIT);
+  const [commentText, setCommentText] = React.useState('');
+  const [modal, setModal]             = React.useState(null);
+
+  const toggle = (i) => {
+    if (!owner) return;
+    setChecklist(prev => prev.map((it, idx) => {
+      if (idx !== i) return it;
+      const done = !it.done;
+      return { ...it, done, by: done ? 'Suresh Pillai' : undefined, date: done ? '16 Jun 2026' : undefined };
+    }));
+  };
+
+  const doneCount = checklist.filter(c => c.done).length;
+  const reqLeft   = checklist.filter(c => c.req && !c.done).length;
+  const pct       = Math.round(doneCount / checklist.length * 100);
 
   return (
-    <div className="p-5 overflow-y-auto h-full">
+    <div className="max-w-[1280px] mx-auto px-6 py-6 pb-12">
+
+      {/* ── Phase Hero ── */}
+      <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_2px_12px_rgba(26,26,23,0.07)] overflow-hidden mb-5">
+        <div className="h-1.5" style={{ background: acc.color }} />
+        <div className="p-6">
+          <div className="flex items-start gap-5 flex-wrap">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              <div className="w-14 h-14 rounded-2xl grid place-items-center flex-none text-white text-[22px] font-bold font-mono shadow-sm"
+                style={{ background: acc.color }}>4</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2.5 flex-wrap mb-1">
+                  <h1 className="text-[22px] font-bold text-[#1A1A17] tracking-tight">QC — Painting & Finishing</h1>
+                  <PhasePill status="In Progress" />
+                  <span className="text-[12px] font-mono text-[#84837C]">Phase 4 of 5</span>
+                </div>
+                <div className="text-[13px] text-[#57564F] flex flex-wrap gap-x-3 gap-y-0.5 items-center">
+                  <span className="font-semibold text-[#1A1A17]">{QC_PROJECT.name}</span>
+                  <span className="text-[#C9C9C3]">·</span>
+                  <span>{QC_PROJECT.client}</span>
+                  <span className="text-[#C9C9C3]">·</span>
+                  <span className="font-mono">{QC_PROJECT.po}</span>
+                  <span className="text-[#C9C9C3]">·</span>
+                  <span>Target <span className="font-semibold font-mono">{QC_PROJECT.target}</span></span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-5 flex-none">
+              <div className="text-center">
+                <div className="text-[32px] font-bold font-mono leading-none" style={{ color: acc.color }}>{pct}%</div>
+                <div className="text-[11px] font-mono text-[#84837C] mt-1">{doneCount}/{checklist.length} tasks</div>
+              </div>
+              {owner && (
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex gap-2">
+                    <button
+                      className={'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[13px] border border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors'}
+                      onClick={() => setModal('issue')}
+                    >
+                      <Icon name="x" className="w-4 h-4" strokeWidth={2.2} /> Raise Issue
+                    </button>
+                    <button
+                      className={'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[13px] transition-all ' +
+                        (reqLeft === 0 ? 'text-white shadow-sm hover:opacity-90' : 'text-[#84837C] bg-[#FAFAF8] border border-[#DEDEDA] cursor-not-allowed opacity-60')}
+                      style={reqLeft === 0 ? { background: acc.color } : {}}
+                      disabled={reqLeft > 0}
+                      onClick={() => reqLeft === 0 && setModal('approve')}
+                    >
+                      <Icon name="check" className="w-4 h-4" strokeWidth={2.2} /> Approve QC
+                    </button>
+                  </div>
+                  {reqLeft > 0 && <span className="text-[11px] text-[#B45309] font-medium">{reqLeft} required item{reqLeft !== 1 ? 's' : ''} remaining</span>}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-5 pt-5 border-t border-[#F0F0EE]">
+            <PhaseStepper phases={QC_PHASES} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── read-only banner ── */}
       {!owner && (
-        <div className="flex items-start gap-2.5 rounded-md px-3.5 py-2.5 mb-3" style={{ background: '#E9F0FF', border: '1px solid #C7D9FF', borderLeft: '4px solid #1D4ED8' }}>
-          <Icon name="eye" className="w-[18px] h-[18px] flex-none mt-px" style={{ color: '#1D4ED8' }} />
-          <span className="text-[13px] text-[#1A1A17]"><span className="font-semibold">You're viewing this phase in read-only mode.</span>{role === 'Dispatch In-charge' && ' Dispatch (Phase 5) will unlock once QC is approved.'}</span>
+        <div className="flex items-center gap-3 rounded-xl px-4 py-3 mb-5 border"
+          style={{ background: '#EFF6FF', borderColor: '#BFDBFE', borderLeft: '4px solid #1D4ED8' }}>
+          <Icon name="eye" className="w-5 h-5 flex-none text-[#1D4ED8]" />
+          <span className="text-[13px] text-[#1A1A17]">
+            <span className="font-semibold">Read-only</span> — {role} can{canComment ? ' comment' : "'t comment"}{canDispute ? ' and raise disputes' : ''} but cannot edit this phase.
+          </span>
         </div>
       )}
 
-      {/* header */}
-      <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 mb-3 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="w-9 h-9 rounded-full bg-[#1D4ED8] text-white grid place-items-center text-[15px] font-mono font-semibold flex-none">4</span>
-              <h1 className="text-[22px] font-semibold text-[#1A1A17] tracking-tight">QC <span className="text-[#57564F] font-medium text-[18px]">· Painting &amp; Finishing</span></h1>
-              <PhasePill status="In Progress" />
-              <span className="text-[12px] font-mono text-[#84837C]">Phase 4 of 5</span>
-            </div>
-            <div className="text-[13px] text-[#57564F] mt-2 flex flex-wrap gap-x-2 gap-y-0.5 items-center">
-              <span className="font-medium text-[#1A1A17]">{QC_PROJECT.name}</span><span className="text-[#C9C9C3]">·</span>
-              <span>{QC_PROJECT.client}</span><span className="text-[#C9C9C3]">·</span>
-              <span className="font-mono">{QC_PROJECT.po}</span><span className="text-[#C9C9C3]">·</span>
-              <span className="font-mono">Target {QC_PROJECT.target}</span><span className="text-[#C9C9C3]">·</span>
-              <span>Assignee {QC_PROJECT.assignee}</span>
-            </div>
-          </div>
+      <div className="grid lg:grid-cols-[1fr_340px] gap-5 items-start">
 
-          {owner && (
-            <div className="flex flex-col items-end gap-1.5 flex-none">
-              <div className="flex items-center gap-2 flex-wrap justify-end">
-                <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[13px] px-3.5 py-2 rounded-md" onClick={() => notify('Progress saved')}>Save Progress</button>
-                <button className="inline-flex items-center gap-2 bg-white border border-[#C2410C]/50 text-[#C2410C] hover:bg-[#FCEEE4] font-semibold text-[13px] px-3.5 py-2 rounded-md" onClick={() => openModal('issue')}><Icon name="disputes" className="w-4 h-4" /> Raise Issue</button>
-                <button className={'inline-flex items-center gap-2 font-semibold text-[13px] px-3.5 py-2 rounded-md ' + (reqLeft === 0 ? 'text-white' : 'cursor-not-allowed')} style={reqLeft === 0 ? { background: '#15803D' } : { background: '#E6F6EC', color: '#8FB89C' }} disabled={reqLeft > 0} onClick={() => reqLeft === 0 && openModal('approve')}><Icon name="check" className="w-4 h-4" strokeWidth={2.2} /> Approve QC</button>
-              </div>
-              {reqLeft > 0 && <span className="text-[12px] text-[#B45309] font-medium">{reqLeft} required item{reqLeft !== 1 ? 's' : ''} remaining</span>}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-[1.85fr_1fr] gap-3 items-start">
         {/* LEFT */}
-        <div className="flex flex-col gap-3 min-w-0">
+        <div className="flex flex-col gap-5">
+
+          {/* NDT & weld inspection log */}
+          <TableCard
+            title="NDT & Weld Inspection Log" count="4 welds" right="0 defects open"
+            cols={['Weld ID', 'Method', 'Extent', 'Result', 'NCR']}
+            rows={QC_NDT}
+          />
+
           {/* checklist */}
-          <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-            <div className="flex items-center gap-2 mb-2.5">
-              <h3 className="text-[16px] font-semibold text-[#1A1A17]">Checklist</h3>
-              <span className="text-[12px] font-mono font-semibold rounded-full px-2 py-0.5" style={{ background: '#F0F0EE', color: '#4B5563' }}>{doneCount}/{checklist.length}</span>
-              <span className="ml-auto text-[12px] font-mono tabular-nums text-[#84837C]">{pct}%</span>
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F0F0EE] flex items-center gap-3">
+              <h3 className="text-[15px] font-bold text-[#1A1A17]">Checklist</h3>
+              <span className="text-[12px] font-mono font-semibold rounded-full px-2.5 py-0.5"
+                style={doneCount === checklist.length ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#4B5563' }}>
+                {doneCount}/{checklist.length}
+              </span>
+              <div className="flex-1" />
+              <span className="text-[13px] font-bold font-mono" style={{ color: acc.color }}>{pct}%</span>
             </div>
-            <div className="mb-3"><Progress done={doneCount} total={checklist.length} /></div>
-            <ul>
+            <div className="px-5 pt-3 pb-2">
+              <Progress done={doneCount} total={checklist.length} tone={acc.color} />
+            </div>
+            <ul className="px-5 pb-2">
               {checklist.map((c, i) => (
-                <li key={i} className="flex items-start gap-3 py-3 border-b border-[#F0F0EE] last:border-0">
-                  {owner ? (
-                    <button type="button" onClick={() => toggle(i)} aria-pressed={c.done} className="flex-none mt-0.5 cursor-pointer focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[#C2410C]/35 rounded-full">
-                      {c.done ? <span className="w-[20px] h-[20px] rounded-full bg-[#15803D] grid place-items-center"><Icon name="check" className="w-3.5 h-3.5 text-white" strokeWidth={2.6} /></span> : <span className="w-[20px] h-[20px] rounded-full border-2 border-[#C9C9C3] bg-white block" />}
-                    </button>
-                  ) : (
-                    <span className="flex-none mt-0.5">{c.done ? <span className="w-[20px] h-[20px] rounded-full bg-[#15803D] grid place-items-center"><Icon name="check" className="w-3.5 h-3.5 text-white" strokeWidth={2.6} /></span> : <span className="w-[20px] h-[20px] rounded-full border-2 border-[#C9C9C3] bg-white block" />}</span>
-                  )}
+                <li key={i}
+                  className="flex items-start gap-3 py-3 px-3 -mx-3 rounded-xl transition-colors"
+                  style={c.done ? { background: '#F0FDF4' } : {}}>
+                  <button type="button"
+                    className={'flex-none mt-0.5 ' + (owner ? 'cursor-pointer' : 'cursor-default')}
+                    onClick={() => toggle(i)} disabled={!owner}>
+                    {c.done
+                      ? <span className="w-[22px] h-[22px] rounded-full bg-[#15803D] grid place-items-center">
+                          <Icon name="check" className="w-3.5 h-3.5 text-white" strokeWidth={2.6} />
+                        </span>
+                      : <span className="w-[22px] h-[22px] rounded-full border-2 border-[#C9C9C3] bg-white block" />}
+                  </button>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[14px] text-[#1A1A17]">{c.t}<span className="text-[#B91C1C] font-semibold"> *</span></div>
-                    {c.done && c.by && <div className="text-[12px] text-[#84837C] mt-0.5 font-mono">Checked by {c.by} · {c.date}</div>}
+                    <div className={'text-[14px] ' + (c.done ? 'text-[#57564F] line-through' : 'text-[#1A1A17] font-medium')}>
+                      {c.t}{c.req && !c.done && <span className="text-[#B91C1C] font-bold"> *</span>}
+                    </div>
+                    {c.done && c.by && (
+                      <div className="text-[11.5px] text-[#15803D] mt-0.5 font-mono flex items-center gap-1">
+                        <Icon name="check" className="w-3 h-3" strokeWidth={2.5} />
+                        {c.by} · {c.date}
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}
             </ul>
-            {owner && <div className="mt-3 pt-3 border-t border-[#F0F0EE] text-[12px] text-[#57564F]"><span className="text-[#B91C1C] font-semibold">*</span> Required — must be checked before completing the phase.</div>}
+            {owner && (
+              <div className="px-5 pb-4 pt-1 text-[11.5px] text-[#84837C] border-t border-[#F0F0EE] mt-1">
+                <span className="text-[#B91C1C] font-bold">*</span> Required — must be checked before approving QC.
+              </div>
+            )}
+          </div>
+
+          {/* DFT readings */}
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F0F0EE] flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg grid place-items-center" style={{ background: acc.bg, color: acc.color }}>
+                <Icon name="quality" className="w-4 h-4" strokeWidth={2} />
+              </div>
+              <h3 className="text-[15px] font-bold text-[#1A1A17]">DFT Readings</h3>
+              <span className="ml-auto text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-[#DCFCE7] text-[#15803D]">All within spec</span>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-x-4 gap-y-0 text-[12px] font-semibold text-[#84837C] border-b border-[#F0F0EE] pb-2 mb-2">
+                <span>Zone</span>
+                <span className="text-center">Surface Prep</span>
+                <span className="text-center">Primer (µm)</span>
+                <span className="text-center">Top Coat (µm)</span>
+              </div>
+              {QC_DFT.map((r, i) => (
+                <div key={i} className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-x-4 py-2 border-b border-[#F0F0EE] last:border-0 text-[13px]">
+                  <span className="text-[#57564F]">{r.zone}</span>
+                  <span className="text-center font-mono text-[#57564F]">{r.prep}</span>
+                  <span className="text-center font-mono font-semibold text-[#1A1A17]">{r.primer}</span>
+                  <span className="text-center font-mono font-semibold text-[#1A1A17]">{r.topcoat}</span>
+                </div>
+              ))}
+              <p className="text-[11.5px] text-[#84837C] font-mono mt-3">Spec: Primer 75–95 µm · Top coat 100–130 µm · Blast Sa 2.5</p>
+            </div>
+          </div>
+
+          {/* ITP sign-off */}
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F0F0EE] flex items-center gap-3">
+              <h3 className="text-[15px] font-bold text-[#1A1A17]">ITP Sign-off</h3>
+              <span className="ml-auto text-[12px] font-mono text-[#84837C]">Hold / Witness / Review</span>
+            </div>
+            <div className="p-5">
+              <div className="grid sm:grid-cols-3 gap-4">
+                {QC_ITP.map(([label, value], i) => (
+                  <div key={i} className="flex flex-col gap-1">
+                    <span className="font-mono text-[10px] uppercase tracking-wide text-[#84837C]">{label}</span>
+                    <div className="border border-[#DEDEDA] bg-[#FAFAF8] rounded-lg px-3 py-2 text-[13px] font-mono text-[#1A1A17]">{value}</div>
+                  </div>
+                ))}
+              </div>
+              {owner && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <button className="inline-flex items-center gap-1.5 border border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEE2E2] font-semibold text-[13px] px-3.5 py-2 rounded-lg transition-colors"
+                    onClick={() => setModal('issue')}>
+                    <Icon name="disputes" className="w-3.5 h-3.5" /> Raise NCR
+                  </button>
+                  <button className={'ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-[13px] transition-all ' +
+                    (reqLeft === 0 ? 'text-white hover:opacity-90' : 'text-[#84837C] bg-[#FAFAF8] border border-[#DEDEDA] cursor-not-allowed opacity-60')}
+                    style={reqLeft === 0 ? { background: acc.color } : {}}
+                    disabled={reqLeft > 0}
+                    onClick={() => reqLeft === 0 && setModal('approve')}>
+                    <Icon name="check" className="w-4 h-4" strokeWidth={2.2} /> Approve QC → unlock Dispatch
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* comments */}
-          <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-            <h3 className="text-[16px] font-semibold text-[#1A1A17] mb-3">Comments &amp; activity</h3>
-            <ol className="flex flex-col gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F0F0EE]">
+              <h3 className="text-[15px] font-bold text-[#1A1A17]">Comments</h3>
+            </div>
+            <div className="px-5 py-4 flex flex-col gap-4">
               {QC_COMMENTS.map((c, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="w-8 h-8 rounded-full bg-[#3C3A33] text-white grid place-items-center text-[11px] font-semibold font-mono flex-none">{c.who.split(' ').map(w => w[0]).join('').slice(0, 2)}</span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap"><span className="text-[13px] font-semibold text-[#1A1A17]">{c.who}</span><span className="text-[11px] text-[#84837C]">{c.role}</span><span className="text-[11px] font-mono text-[#84837C]">· {c.time}</span></div>
-                    <p className="text-[14px] text-[#1A1A17] mt-0.5 leading-relaxed">{c.text}</p>
+                <div key={i} className="flex items-start gap-3">
+                  <span className="w-9 h-9 rounded-full grid place-items-center text-[12px] font-bold font-mono flex-none text-white"
+                    style={{ background: acc.color }}>
+                    {c.who.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                  </span>
+                  <div className="flex-1 min-w-0 bg-[#FAFAF8] rounded-xl px-4 py-3 border border-[#F0F0EE]">
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <span className="text-[13px] font-semibold text-[#1A1A17]">{c.who}</span>
+                      <span className="text-[11px] rounded-full px-2 py-0.5 font-medium bg-[#F0F0EE] text-[#57564F]">{c.role}</span>
+                      <span className="text-[11px] font-mono text-[#84837C] ml-auto">{c.time}</span>
+                    </div>
+                    <p className="text-[14px] text-[#1A1A17] leading-relaxed">{c.text}</p>
                   </div>
-                </li>
-              ))}
-            </ol>
-            {canComment ? (
-              <div className="flex flex-col gap-2">
-                <textarea className="w-full min-h-[64px] rounded-md border border-[#C9C9C3] bg-white text-[14px] px-3 py-2.5 resize-y focus:outline-none focus:border-[#C2410C] focus:ring-[3px] focus:ring-[#C2410C]/35" placeholder="Add a comment…" />
-                <div className="flex items-center justify-between gap-2">
-                  {canDispute ? (
-                    <button className="inline-flex items-center gap-1.5 bg-white border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3 py-2 rounded-md" onClick={() => openModal('issue')}><Icon name="disputes" className="w-4 h-4" /> Raise Dispute</button>
-                  ) : <span />}
-                  <button className="inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#1A1A17] font-semibold text-[14px] px-4 py-2 rounded-md" onClick={() => notify('Comment posted')}>Post</button>
                 </div>
-              </div>
-            ) : (
-              <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-md px-3 py-2">
-                {role === 'Finance Officer' ? 'Finance Officer — financial view only, no comments' : 'Viewer — read-only, no comment access'}
-              </div>
-            )}
+              ))}
+
+              {canComment ? (
+                <div className="flex flex-col gap-2.5">
+                  <textarea
+                    className="w-full min-h-[80px] rounded-xl border border-[#C9C9C3] bg-white text-[14px] px-4 py-3 resize-y focus:outline-none"
+                    placeholder="Add a comment…"
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    onFocus={e => { e.target.style.borderColor = acc.color; e.target.style.boxShadow = `0 0 0 3px ${acc.ring}`; }}
+                    onBlur={e => { e.target.style.borderColor = '#C9C9C3'; e.target.style.boxShadow = 'none'; }}
+                  />
+                  <div className="flex items-center gap-2">
+                    {canDispute && (
+                      <button
+                        className="inline-flex items-center gap-1.5 border border-[#C9C9C3] hover:border-[#B45309] hover:text-[#B45309] text-[#57564F] font-semibold text-[13px] px-3.5 py-2 rounded-lg transition-colors"
+                        onClick={() => setModal('dispute')}
+                      >
+                        <Icon name="disputes" className="w-3.5 h-3.5" /> Raise Dispute
+                      </button>
+                    )}
+                    <button
+                      className="ml-auto px-5 py-2 rounded-lg font-semibold text-[13px] text-white hover:opacity-90"
+                      style={{ background: acc.color }}
+                      onClick={() => { if (commentText.trim()) { notify('Comment posted'); setCommentText(''); } }}
+                    >Post</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[12px] font-mono text-[#84837C] bg-[#FAFAF8] border border-dashed border-[#DEDEDA] rounded-xl px-4 py-3 text-center">
+                  {role === 'Finance Officer' ? 'Finance Officer — financial view only, commenting not available' : 'Viewer — read-only access'}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* RIGHT */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-5">
+
           {/* documents */}
-          <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-            <div className="flex items-center gap-2 mb-3"><h3 className="text-[15px] font-semibold text-[#1A1A17]">Phase Documents</h3><span className="text-[12px] font-mono text-[#84837C]">{QC_DOCS.length}</span></div>
-            {QC_DOCS.map((d, i) => <QCDocRow key={i} doc={d} />)}
-            {owner && (
-              <div className="mt-4 rounded-md border-2 border-dashed border-[#C9C9C3] bg-[#FAFAF8] p-3.5">
-                <button className="w-full inline-flex items-center gap-2 bg-white border border-[#C9C9C3] hover:border-[#84837C] text-[#84837C] font-medium text-[13px] px-3 py-2 rounded-md mb-2.5"><Icon name="paperclip" className="w-4 h-4 flex-none" /><span className="truncate">Choose file…</span></button>
-                <div className="flex items-center gap-2">
-                  <select className="flex-1 h-9 rounded-md border border-[#C9C9C3] text-[13px] pl-3 pr-8 bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#C2410C]" style={qcSelStyle}>{QC_DOC_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
-                  <button className="h-9 px-4 rounded-md bg-[#C2410C] hover:bg-[#9A330A] text-white text-[13px] font-semibold flex-none">Upload</button>
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F0F0EE] flex items-center gap-2">
+              <h3 className="text-[15px] font-bold text-[#1A1A17]">Documents</h3>
+              <span className="text-[12px] font-mono font-semibold bg-[#F0F0EE] text-[#4B5563] px-2 py-0.5 rounded-full">{QC_DOCS.length}</span>
+            </div>
+            <div className="p-4 flex flex-col gap-1">
+              {QC_DOCS.map((d, i) => (
+                <div key={i} className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-[#FAFAF8] transition-colors">
+                  <span className={'w-10 h-10 rounded-xl grid place-items-center flex-none ' + (d.pdf ? 'bg-[#FCECEC] text-[#B91C1C]' : 'bg-[#E9F0FF] text-[#1D4ED8]')}>
+                    <Icon name={d.pdf ? 'pdf' : 'image'} className="w-5 h-5" strokeWidth={1.5} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[13px] font-semibold font-mono text-[#1A1A17] truncate">{d.n}</span>
+                      <span className="text-[10px] font-semibold rounded-full px-1.5 py-0.5 flex-none bg-[#F0F0EE] text-[#57564F]">{d.t}</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-[#84837C] mt-0.5">{d.s} · {d.by} · {d.d}</div>
+                  </div>
+                  <button className="w-8 h-8 rounded-lg grid place-items-center text-[#57564F] hover:bg-[#F0F0EE] flex-none">
+                    <Icon name="upload" className="w-[18px] h-[18px] rotate-180" />
+                  </button>
                 </div>
-                <div className="text-[11px] text-[#84837C] mt-2">PDF, JPG, PNG — max 20 MB</div>
+              ))}
+            </div>
+            {owner && (
+              <div className="px-4 pb-4">
+                <div className="rounded-xl border-2 border-dashed border-[#DEDEDA] bg-[#FAFAF8] p-4">
+                  <div className="flex flex-col items-center mb-3">
+                    <div className="w-10 h-10 rounded-xl grid place-items-center mb-1.5" style={{ background: acc.bg, color: acc.color }}>
+                      <Icon name="upload" className="w-5 h-5" />
+                    </div>
+                    <p className="text-[12px] text-[#84837C]">PDF, JPG, PNG — max 20 MB</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <select className="flex-1 h-9 rounded-lg border border-[#C9C9C3] text-[13px] pl-3 pr-8 bg-white appearance-none focus:outline-none"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%2357564F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}>
+                      {QC_DOC_TYPES.map(t => <option key={t}>{t}</option>)}
+                    </select>
+                    <button
+                      className="h-9 px-4 rounded-lg text-white text-[13px] font-semibold flex-none hover:opacity-90"
+                      style={{ background: acc.color }}
+                      onClick={() => notify('Uploading…')}
+                    >Upload</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
+          {/* inspection & TPI */}
+          <InfoPanel title="Inspection & TPI" rows={[
+            ['ITP',         'ITP-2026-018'],
+            ['TPI agency',  'Lloyd’s'],
+            ['Open NCRs',   '0'],
+            ['Closed NCRs', '1 (NCR-07)'],
+            ['QC Head',     QC_PROJECT.assignee],
+          ]} />
+
           {/* phase info */}
-          <div className="bg-white border border-[#DEDEDA] rounded-lg p-5 shadow-[0_1px_2px_rgba(26,26,23,0.05)]">
-            <h3 className="text-[15px] font-semibold text-[#1A1A17] mb-2.5">Phase info</h3>
-            <p className="text-[13px] text-[#57564F] leading-relaxed mb-3">Surface prep, primer and finish coats, DFT verification and final QC sign-off before the project is released to dispatch.</p>
-            <div className="grid grid-cols-2 gap-y-2 text-[13px]">
-              <span className="text-[#84837C]">Phase order</span><span className="text-[#1A1A17] font-mono text-right">4 of 5</span>
-              <span className="text-[#84837C]">Started</span><span className="text-[#1A1A17] font-mono text-right">13 Jun 2026</span>
-              <span className="text-[#84837C]">Completed</span><span className="text-[#1A1A17] font-mono text-right">—</span>
-              <span className="text-[#84837C]">Duration</span><span className="text-[#1A1A17] font-mono text-right">1 day</span>
-            </div>
+          <div className="bg-white rounded-2xl border border-[#DEDEDA] shadow-[0_1px_4px_rgba(26,26,23,0.05)] p-5">
+            <h3 className="text-[15px] font-bold text-[#1A1A17] mb-2">Phase Info</h3>
+            <p className="text-[13px] text-[#57564F] leading-relaxed">
+              Complete weld NDT, verify surface prep and DFT across all zones, close any NCRs, then sign the QC certificate with TPI witness to unlock Dispatch.
+            </p>
           </div>
 
-          {/* related phases — QC → Dispatch */}
-          <QCRelatedPhases />
         </div>
       </div>
+
+      {/* activity log */}
+      <ActivityLog items={QC_ACTIVITY} acc={acc} />
+
+      {modal === 'approve'  && <ApproveQCModal  onClose={() => setModal(null)} onConfirm={() => { notify('QC approved!'); setModal(null); }} />}
+      {modal === 'issue'    && <QCIssueModal    onClose={() => setModal(null)} onConfirm={() => { notify('Quality issue raised'); setModal(null); }} />}
     </div>
-  );
-}
-
-function QCRoleFrame({ tag, title, role, notify, openModal, height = 1120 }) {
-  const access = ['Quality Head', 'General Manager'].includes(role) ? 'edit' : 'view';
-  return (
-    <section>
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <span className="font-mono text-[12px] font-semibold text-[#C2410C] bg-[#FCEEE4] rounded px-2 py-0.5">{tag}</span>
-        <span className="text-[15px] font-semibold text-[#1A1A17]">{title}</span>
-        <NeutralBadge role={role} />
-        <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold"
-          style={access === 'edit' ? { background: '#DCFCE7', color: '#15803D' } : { background: '#F0F0EE', color: '#57564F' }}>
-          {access === 'edit' ? 'Edit' : 'View only'}
-        </span>
-      </div>
-      <div className="border border-[#C9C9C3] rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(26,26,23,0.05)] bg-[#F4F4F2]">
-        <div className="flex" style={{ height }}>
-          <MiniRail />
-          <div className="flex-1 min-w-0 flex flex-col">
-            <FrameTopbar crumb={['Home', 'Projects', 'PROJ-2026-0018', 'QC (Painting & Finishing)']} role={role} access={access} />
-            <div className="flex-1 overflow-hidden"><QCBody role={role} notify={notify} openModal={openModal} /></div>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 
 function QCPhasePage() {
-  const [toast, setToast] = React.useState(null);
-  const [modal, setModal] = React.useState(null);
-  const timer = React.useRef(null);
-  const notify = React.useCallback((m) => { setToast(m); clearTimeout(timer.current); timer.current = setTimeout(() => setToast(null), 1900); }, []);
-
   return (
-    <div className="min-h-screen bg-[#F4F4F2] text-[#1A1A17]">
-      <div className="max-w-[1180px] mx-auto px-8 py-12 pb-28">
-        <header className="mb-10">
-          <p className="font-mono text-[12px] tracking-[0.12em] uppercase text-[#C2410C] font-semibold mb-2.5">Siteflow · Production · Phase 4</p>
-          <h1 className="text-[26px] font-semibold tracking-tight mb-2">QC — Painting &amp; Finishing</h1>
-          <p className="text-[16px] text-[#57564F] max-w-[68ch]">Phase 4 of 5 — Quality Head's final sign-off before dispatch. All 8 roles shown. General Manager has full access. Dispatch In-charge watches for unlock. Finance Officer and Viewer are strict read-only. Approve QC and Raise Quality Issue open confirmation dialogs.</p>
-        </header>
-
-        <div className="flex flex-col gap-12">
-          <QCRoleFrame tag="State 1" title="General Manager — full access, all controls across all phases" role="General Manager" notify={notify} openModal={setModal} height={1080} />
-          <QCRoleFrame tag="State 2" title="Quality Head — owner, final sign-off" role="Quality Head" notify={notify} openModal={setModal} height={1080} />
-
-          <div>
-            <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[#57564F] font-semibold mb-3">Confirmation dialogs (owner actions)</div>
-            <div className="flex flex-wrap gap-2.5">
-              <button className="inline-flex items-center gap-2 text-white font-semibold text-[14px] px-4 py-2.5 rounded-md" style={{ background: '#15803D' }} onClick={() => setModal('approve')}><Icon name="check" className="w-[18px] h-[18px]" strokeWidth={2.2} /> Approve QC dialog</button>
-              <button className="inline-flex items-center gap-2 bg-white border border-[#C2410C]/50 text-[#C2410C] hover:bg-[#FCEEE4] font-semibold text-[14px] px-4 py-2.5 rounded-md" onClick={() => setModal('issue')}><Icon name="disputes" className="w-[18px] h-[18px]" /> Raise Quality Issue dialog</button>
-            </div>
-            <p className="mt-2.5 text-[12px] text-[#84837C]">In-page, Approve QC stays disabled until the last required item ("Project marked ready for dispatch") is checked; this button previews the dialog directly.</p>
-          </div>
-
-          <QCRoleFrame tag="State 3" title="Planning Officer — read-only, can comment + raise dispute" role="Planning Officer" notify={notify} openModal={setModal} height={1020} />
-          <QCRoleFrame tag="State 4" title="Project Manager — read-only, can comment + raise dispute" role="Project Manager" notify={notify} openModal={setModal} height={1020} />
-          <QCRoleFrame tag="State 5" title="Quality Inspector — read-only, can comment" role="Quality Inspector" notify={notify} openModal={setModal} height={1020} />
-          <QCRoleFrame tag="State 6" title="Finance Officer — read-only, no comment access" role="Finance Officer" notify={notify} openModal={setModal} height={980} />
-          <QCRoleFrame tag="State 7" title="Dispatch In-charge — read-only, awaiting dispatch unlock" role="Dispatch In-charge" notify={notify} openModal={setModal} height={1020} />
-          <QCRoleFrame tag="State 8" title="Viewer — read-only, no comment or actions" role="Viewer" notify={notify} openModal={setModal} height={980} />
-        </div>
-      </div>
-
-      {modal === 'approve' && <ApproveQCModal onClose={() => setModal(null)} notify={notify} />}
-      {modal === 'issue' && <RaiseIssueModal onClose={() => setModal(null)} notify={notify} />}
-
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1A1A17] text-white text-[13px] font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 po-toast">
-          <Icon name="check" className="w-4 h-4 text-[#86efac]" /><span className="font-mono">{toast}</span>
-        </div>
-      )}
-    </div>
+    <PhaseShell
+      crumb={['Home', 'Projects', 'PROJ-2026-0018', 'QC']}
+      ownerRoles={['Quality Head', 'General Manager']}
+    >
+      {(role, access, notify) => <QCBody role={role} access={access} notify={notify} />}
+    </PhaseShell>
   );
 }
 

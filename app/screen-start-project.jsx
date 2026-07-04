@@ -30,18 +30,46 @@ const SP_MANAGERS = [
 const SP_STAGE_USERS = [
   { name: 'Rajesh Kumar',  role: 'Production Supervisor', initials: 'RK' },
   { name: 'Anil Sharma',   role: 'Beamline Operator',     initials: 'AS' },
-  { name: 'Priya Nair',    role: 'Fit-Up Technician',     initials: 'PN' },
-  { name: 'K. Verma',      role: 'Quality Inspector',     initials: 'KV' },
+  { name: 'Priya Nair',    role: 'Quality Inspector',     initials: 'PN' },
+  { name: 'K. Verma',      role: 'Quality Head',          initials: 'KV' },
   { name: 'M. Patel',      role: 'Production Lead',       initials: 'MP' },
   { name: 'D. Joshi',      role: 'Senior Fabricator',     initials: 'DJ' },
+  { name: 'V. Patil',      role: 'Dispatch In-charge',    initials: 'VP' },
 ];
 
 const SP_STAGE_DEFS = [
   { n: 1, name: 'Cutting Phase',  color: '#C2410C', bg: '#FCEEE4', icon: 'production', desc: 'Raw material cutting and piece tagging' },
-  { n: 2, name: 'Beamline Phase', color: '#1D4ED8', bg: '#E9F0FF', icon: 'projects',   desc: 'Beam fabrication and shot-blasting' },
-  { n: 3, name: 'Fit-Up Phase',   color: '#B45309', bg: '#FBF1DD', icon: 'quality',    desc: 'Structural fit-up, welding and alignment' },
-  { n: 4, name: 'QC Phase',       color: '#15803D', bg: '#E6F6EC', icon: 'quality',    desc: 'Quality inspection and final sign-off' },
+  { n: 2, name: 'Beamline Phase', color: '#1D4ED8', bg: '#E9F0FF', icon: 'projects',   desc: 'Drilling, coping and layout marking' },
+  { n: 3, name: 'Fit-Up Phase',   color: '#B45309', bg: '#FBF1DD', icon: 'quality',    desc: 'Assembly, tack weld and fit-up inspection' },
+  { n: 4, name: 'QC Phase',       color: '#7E22CE', bg: '#F5F3FF', icon: 'quality',    desc: 'NDT, painting / DFT and final sign-off' },
+  { n: 5, name: 'Dispatch Phase', color: '#0E7490', bg: '#ECFEFF', icon: 'dispatch',   desc: 'Reconcile, pack and deliver to site' },
 ];
+
+/* pre-execution gates: Create → GM Approval → PM Review → Active */
+const SP_FLOW = ['Create', 'GM Approval', 'PM Review', 'Active'];
+function SPFlowSteps({ current }) {
+  return (
+    <div className="flex items-center gap-0 mb-7">
+      {SP_FLOW.map((s, i) => {
+        const n = i + 1;
+        const done = n < current;
+        const active = n === current;
+        return (
+          <React.Fragment key={s}>
+            <div className="flex items-center gap-2 flex-none">
+              <span className={'w-7 h-7 rounded-full grid place-items-center text-[12px] font-bold font-mono flex-none ' +
+                (done ? 'bg-[#15803D] text-white' : active ? 'bg-[#C2410C] text-white' : 'bg-[#E5E5E1] text-[#84837C]')}>
+                {done ? <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.6} /> : n}
+              </span>
+              <span className={'text-[13px] font-semibold ' + (active ? 'text-[#1A1A17]' : done ? 'text-[#15803D]' : 'text-[#84837C]')}>{s}</span>
+            </div>
+            {i < SP_FLOW.length - 1 && <div className={'flex-1 h-0.5 mx-3 min-w-[20px] ' + (done ? 'bg-[#15803D]' : 'bg-[#E5E5E1]')} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
 
 /* ============================================================
    FORM FIELD WRAPPER
@@ -169,6 +197,7 @@ function SPLaunchedView({ form, assignees, onBackToProjects }) {
 
   return (
     <div className="max-w-[680px] mx-auto">
+      <SPFlowSteps current={4} />
       {/* success banner */}
       <div className="flex items-center gap-3.5 bg-[#E6F6EC] border border-[#C3E6CC] rounded-xl px-5 py-4 mb-7">
         <div className="w-10 h-10 rounded-full bg-[#15803D] grid place-items-center flex-none">
@@ -204,7 +233,7 @@ function SPLaunchedView({ form, assignees, onBackToProjects }) {
               { label: 'Linked PO',       val: form.poNo,           mono: true },
               { label: 'Project Manager', val: form.pm,             mono: false },
               { label: 'Target Date',     val: fmtDate(form.targetDate) || '—', mono: true },
-              { label: 'Stages',          val: '4 stages',          mono: true },
+              { label: 'Stages',          val: SP_STAGE_DEFS.length + ' stages', mono: true },
             ].map((f) => (
               <div key={f.label} className="flex flex-col gap-0.5">
                 <span className="text-[11px] font-mono uppercase tracking-wider text-[#84837C]">{f.label}</span>
@@ -276,16 +305,187 @@ function SPLaunchedView({ form, assignees, onBackToProjects }) {
 }
 
 /* ============================================================
+   GM / DIRECTOR APPROVAL VIEW  (gate 2)
+   ============================================================ */
+function SPApprovalView({ form, assignees, onApprove, onSendBack }) {
+  const [note, setNote] = React.useState('');
+  const po = PO_DATA.find((p) => p.no === form.poNo);
+
+  return (
+    <div className="max-w-[720px] mx-auto">
+      <SPFlowSteps current={2} />
+
+      {/* awaiting banner */}
+      <div className="flex items-center gap-3.5 bg-[#FBF1DD] border border-[#E6CFA0] rounded-xl px-5 py-4 mb-6">
+        <div className="w-10 h-10 rounded-full bg-[#B45309] grid place-items-center flex-none">
+          <Icon name="info" className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <div className="text-[15px] font-semibold text-[#92400E]">Awaiting approval</div>
+          <div className="text-[13px] text-[#57564F] mt-0.5">
+            <span className="font-semibold text-[#1A1A17]">{form.projectName}</span> has been submitted to the General Manager / Director for review.
+          </div>
+        </div>
+      </div>
+
+      {/* project summary */}
+      <div className="bg-white border border-[#DEDEDA] rounded-xl shadow-[0_1px_3px_rgba(26,26,23,0.06)] overflow-hidden mb-6">
+        <div className="px-6 py-5 border-b border-[#DEDEDA]">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold mb-1.5" style={{ color: '#92400E', background: '#FBF1DD' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" /> Awaiting Approval
+              </span>
+              <h2 className="text-[20px] font-semibold text-[#1A1A17] tracking-tight">{form.projectName}</h2>
+              <div className="text-[14px] text-[#57564F] mt-0.5">{po ? po.client : form.client}</div>
+            </div>
+            <RoleBadge role="Planning Officer" dot={ROLE_LENS['Planning Officer'].dot} />
+          </div>
+          <div className="mt-5 pt-4 border-t border-[#DEDEDA] grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3">
+            {[
+              { label: 'Linked PO',       val: form.poNo },
+              { label: 'Project Manager', val: form.pm },
+              { label: 'Target Date',     val: fmtDate(form.targetDate) || '—' },
+              { label: 'Stages',          val: SP_STAGE_DEFS.length + ' stages' },
+            ].map((f) => (
+              <div key={f.label} className="flex flex-col gap-0.5">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-[#84837C]">{f.label}</span>
+                <span className="text-[13px] text-[#1A1A17] font-semibold">{f.val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* assigned owners */}
+        <div className="px-6 py-5">
+          <div className="text-[12px] font-mono font-semibold uppercase tracking-wider text-[#84837C] mb-3">Stage owners</div>
+          <div className="grid sm:grid-cols-2 gap-2.5">
+            {SP_STAGE_DEFS.map((stage) => (
+              <div key={stage.n} className="flex items-center gap-2.5">
+                <span className="text-[11px] font-bold font-mono rounded-full px-2 py-0.5 flex-none" style={{ color: stage.color, background: stage.bg }}>S{stage.n}</span>
+                <span className="text-[13px] text-[#1A1A17] font-medium flex-1 min-w-0 truncate">{stage.name.replace(' Phase', '')}</span>
+                <span className="text-[12px] text-[#57564F] truncate">{assignees[stage.n] || '—'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* GM decision panel */}
+      <div className="bg-white border border-[#DEDEDA] rounded-xl shadow-[0_1px_2px_rgba(26,26,23,0.05)] p-6">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          <h3 className="text-[16px] font-semibold text-[#1A1A17]">General Manager / Director decision</h3>
+          <RoleBadge role="General Manager" dot={ROLE_LENS['General Manager'].dot} />
+        </div>
+        <p className="text-[13px] text-[#57564F] mb-4">Review the scope, PO, project manager and stage owners. Approve to initiate the project, or send it back with revision notes.</p>
+        <textarea
+          className={SP_INPUT + ' h-auto min-h-[80px] py-2.5 resize-y'}
+          placeholder="Revision notes (required when sending back)…"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <div className="flex items-center gap-2.5 mt-4 flex-wrap">
+          <button
+            className="inline-flex items-center gap-2 bg-white border border-[#B45309] text-[#B45309] hover:bg-[#FBF1DD] font-semibold text-[14px] px-4 py-2.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!note.trim()}
+            onClick={() => onSendBack(note.trim())}
+          >
+            <Icon name="disputes" className="w-[18px] h-[18px]" /> Send Back for Revision
+          </button>
+          <button className={SP_PRIMARY + ' ml-auto'} onClick={onApprove}>
+            <Icon name="check" className="w-[18px] h-[18px]" strokeWidth={2.2} /> Approve Project
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   PROJECT MANAGER PREREQUISITE REVIEW  (gate 3)
+   ============================================================ */
+function SPPMReview({ form, onConfirm }) {
+  const items = [
+    ['drawings',  'Approved drawings received & reviewed'],
+    ['materials', 'Raw materials available & verified against PO'],
+    ['timelines', 'Timelines & milestones confirmed'],
+    ['resources', 'Machines and stage owners resourced'],
+  ];
+  const [checks, setChecks] = React.useState({ drawings: false, materials: false, timelines: false, resources: false });
+  const allChecked = items.every(([k]) => checks[k]);
+
+  return (
+    <div className="max-w-[680px] mx-auto">
+      <SPFlowSteps current={3} />
+
+      {/* approved banner */}
+      <div className="flex items-center gap-3.5 bg-[#E6F6EC] border border-[#C3E6CC] rounded-xl px-5 py-4 mb-6">
+        <div className="w-10 h-10 rounded-full bg-[#15803D] grid place-items-center flex-none">
+          <Icon name="check" className="w-6 h-6 text-white" strokeWidth={2.2} />
+        </div>
+        <div>
+          <div className="text-[15px] font-semibold text-[#15803D]">Project approved by General Manager</div>
+          <div className="text-[13px] text-[#57564F] mt-0.5">Assigned to <span className="font-semibold text-[#1A1A17]">{form.pm}</span> for prerequisite verification before execution.</div>
+        </div>
+      </div>
+
+      {/* PM prerequisite checklist */}
+      <div className="bg-white border border-[#DEDEDA] rounded-xl shadow-[0_1px_2px_rgba(26,26,23,0.05)] p-6">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          <h3 className="text-[16px] font-semibold text-[#1A1A17]">Prerequisite review</h3>
+          <RoleBadge role="Project Manager" dot={ROLE_LENS['Project Manager'].dot} />
+        </div>
+        <p className="text-[13px] text-[#57564F] mb-4">The Project Manager verifies all prerequisites. Once confirmed, execution begins with the first phase — Cutting.</p>
+
+        <div className="flex flex-col gap-2">
+          {items.map(([k, label]) => {
+            const on = checks[k];
+            return (
+              <button
+                key={k}
+                type="button"
+                className={'flex items-center gap-3 text-left px-4 py-3 rounded-lg border transition-colors ' +
+                  (on ? 'border-[#C3E6CC] bg-[#F0FDF4]' : 'border-[#DEDEDA] bg-white hover:bg-[#FAFAF8]')}
+                onClick={() => setChecks((c) => ({ ...c, [k]: !c[k] }))}
+              >
+                {on
+                  ? <span className="w-[22px] h-[22px] rounded-full bg-[#15803D] grid place-items-center flex-none"><Icon name="check" className="w-3.5 h-3.5 text-white" strokeWidth={2.6} /></span>
+                  : <span className="w-[22px] h-[22px] rounded-full border-2 border-[#C9C9C3] bg-white flex-none" />}
+                <span className={'text-[14px] ' + (on ? 'text-[#57564F] line-through' : 'text-[#1A1A17] font-medium')}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 pt-5 border-t border-[#DEDEDA] flex items-center justify-between gap-4 flex-wrap">
+          <span className="text-[12px] font-mono text-[#84837C]">
+            {items.filter(([k]) => checks[k]).length} / {items.length} verified
+          </span>
+          <button
+            className={allChecked ? SP_PRIMARY : 'inline-flex items-center gap-2 bg-[#FAFAF8] border border-[#DEDEDA] text-[#84837C] font-semibold text-[14px] px-4 py-2.5 rounded-md cursor-not-allowed'}
+            onClick={() => allChecked && onConfirm()}
+            disabled={!allChecked}
+          >
+            <Icon name="production" className="w-[18px] h-[18px]" /> Confirm &amp; Start Cutting Phase
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    MAIN SCREEN
    ============================================================ */
 function ScreenStartProject({ notify, goTo }) {
-  const [launched, setLaunched] = React.useState(false);
+  /* pre-execution gate: 'form' → 'awaiting' → 'pmreview' → 'active' */
+  const [gate, setGate] = React.useState('form');
   const [showErrors, setShowErrors] = React.useState(false);
+  const [sentBackNote, setSentBackNote] = React.useState('');
 
   const [form, setForm] = React.useState({
     poNo: '', projectName: '', client: '', pm: '', targetDate: '',
   });
-  const [assignees, setAssignees] = React.useState({ 1: '', 2: '', 3: '', 4: '' });
+  const [assignees, setAssignees] = React.useState({ 1: '', 2: '', 3: '', 4: '', 5: '' });
 
   const setField = (k) => (e) => {
     const val = e.target.value;
@@ -307,22 +507,38 @@ function ScreenStartProject({ notify, goTo }) {
   const allStagesAssigned = SP_STAGE_DEFS.every((s) => assignees[s.n] !== '');
   const canLaunch = form.poNo && form.projectName.trim() && form.pm && allStagesAssigned;
 
-  const handleLaunch = () => {
+  const handleSubmit = () => {
     if (!canLaunch) { setShowErrors(true); return; }
-    notify('Project started ✓');
-    setLaunched(true);
+    setSentBackNote('');
+    notify('Submitted for approval ✓');
+    setGate('awaiting');
+  };
+  const handleSendBack = (note) => {
+    setSentBackNote(note);
+    notify('Sent back for revision');
+    setGate('form');
+  };
+  const handleApprove = () => {
+    notify('Project approved ✓');
+    setGate('pmreview');
+  };
+  const handleConfirmStart = () => {
+    notify('Cutting Phase started ✓');
+    setGate('active');
   };
 
   const inputErr = (k) => showErrors && !form[k].trim()
     ? 'This field is required'
     : null;
 
-  if (launched) {
+  if (gate === 'awaiting' || gate === 'pmreview' || gate === 'active') {
     return (
       <div className="flex flex-col h-full">
         <TopBar crumb={['Home', 'Projects', 'Start New Project']} />
         <div className="flex-1 overflow-y-auto px-6 py-8">
-          <SPLaunchedView form={form} assignees={assignees} onBackToProjects={() => goTo && goTo('list')} />
+          {gate === 'awaiting' && <SPApprovalView form={form} assignees={assignees} onApprove={handleApprove} onSendBack={handleSendBack} />}
+          {gate === 'pmreview' && <SPPMReview form={form} onConfirm={handleConfirmStart} />}
+          {gate === 'active'   && <SPLaunchedView form={form} assignees={assignees} onBackToProjects={() => goTo && goTo('list')} />}
         </div>
       </div>
     );
@@ -335,16 +551,30 @@ function ScreenStartProject({ notify, goTo }) {
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto w-full max-w-[720px]">
 
+          <SPFlowSteps current={1} />
+
           {/* page header */}
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <div className="text-[12px] font-mono font-semibold uppercase tracking-wider text-[#B45309]">Projects</div>
               <span className="text-[#C9C9C3] text-[12px]">/</span>
+              <RoleBadge role="Finance Officer" dot={ROLE_LENS['Finance Officer'].dot} />
               <RoleBadge role="Planning Officer" dot={ROLE_LENS['Planning Officer'].dot} />
             </div>
-            <h1 className="text-[24px] font-semibold text-[#1A1A17] tracking-tight">Start New Project</h1>
-            <p className="text-[14px] text-[#57564F] mt-1">Link an approved PO, assign a project manager, and assign a responsible person for each production stage before launching.</p>
+            <h1 className="text-[24px] font-semibold text-[#1A1A17] tracking-tight">Create New Project</h1>
+            <p className="text-[14px] text-[#57564F] mt-1">The Finance / Planning team links an approved PO, defines scope, and assigns a stage owner for each phase, then submits the project to the General Manager / Director for approval.</p>
           </div>
+
+          {/* sent-back-for-revision banner */}
+          {sentBackNote && (
+            <div className="flex items-start gap-3 bg-[#FBF1DD] border border-[#E6CFA0] rounded-xl px-4 py-3.5 mb-6">
+              <Icon name="disputes" className="w-5 h-5 text-[#B45309] flex-none mt-0.5" />
+              <div>
+                <div className="text-[13px] font-semibold text-[#92400E]">Sent back for revision by the General Manager / Director</div>
+                <div className="text-[13px] text-[#57564F] mt-0.5">“{sentBackNote}”</div>
+              </div>
+            </div>
+          )}
 
           {/* ---- SECTION 1: Project Setup ---- */}
           <div className="mb-2">
@@ -488,7 +718,7 @@ function ScreenStartProject({ notify, goTo }) {
               {canLaunch && (
                 <p className="text-[13px] text-[#15803D] font-medium flex items-center gap-1.5">
                   <Icon name="check" className="w-4 h-4 flex-none" strokeWidth={2.2} />
-                  Ready to launch — all assignments complete.
+                  Ready to submit — all assignments complete.
                 </p>
               )}
             </div>
@@ -500,10 +730,10 @@ function ScreenStartProject({ notify, goTo }) {
                     ? SP_PRIMARY
                     : 'inline-flex items-center gap-2 bg-[#FAFAF8] border border-[#DEDEDA] text-[#84837C] font-semibold text-[14px] px-4 py-2.5 rounded-md cursor-not-allowed'
                 }
-                onClick={handleLaunch}
+                onClick={handleSubmit}
               >
-                <Icon name="production" className="w-[18px] h-[18px]" />
-                Start Project
+                <Icon name="send" className="w-[18px] h-[18px]" />
+                Submit for Approval
               </button>
             </div>
           </div>

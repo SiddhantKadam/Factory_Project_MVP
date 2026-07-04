@@ -57,6 +57,7 @@ const PO_DATA = [
 ];
 
 function fmtDate(iso) {
+  if (!iso) return '—';
   const [y, m, d] = iso.split('-');
   const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m - 1];
   return `${d} ${mon} ${y}`;

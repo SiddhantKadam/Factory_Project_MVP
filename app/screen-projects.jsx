@@ -19,12 +19,13 @@ const PD_SELECT_BG = {
   backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center',
 };
 
-/* ---- stage colour palette ---- */
+/* ---- stage colour palette (matches phase-page accents) ---- */
 const PD_STAGE = {
   1: { name: 'Cutting Phase',  color: '#C2410C', bg: '#FCEEE4' },
   2: { name: 'Beamline Phase', color: '#1D4ED8', bg: '#E9F0FF' },
   3: { name: 'Fit-Up Phase',   color: '#B45309', bg: '#FBF1DD' },
-  4: { name: 'QC Phase',       color: '#15803D', bg: '#E6F6EC' },
+  4: { name: 'QC Phase',       color: '#7E22CE', bg: '#F5F3FF' },
+  5: { name: 'Dispatch Phase', color: '#0E7490', bg: '#ECFEFF' },
 };
 
 /* ---- role access rules ---- */
@@ -41,6 +42,33 @@ const PD_ROLES = Object.keys(PD_ROLE_ACCESS);
    MOCK DATA
    ============================================================ */
 const PD_PROJECTS = [
+  {
+    id: 'PROJ-2026-0024',
+    name: 'Platform Access Stairs',
+    client: 'Harbour Logistics Pvt. Ltd.',
+    status: 'Awaiting Approval',
+    pm: 'P. Fernandes',
+    planningOfficer: 'M. Delgado',
+    startDate: null,
+    targetDate: '2026-07-28',
+    activeStage: null,
+    stagesCompleted: 0,
+    stages: [
+      { n: 1, status: 'Pending', assignee: 'Rajesh Kumar', assigneeRole: 'Production Supervisor', initials: 'RK', tasksDone: 0, startDate: null, endDate: null, comment: null },
+      { n: 2, status: 'Pending', assignee: 'Anil Sharma',  assigneeRole: 'Beamline Operator',     initials: 'AS', tasksDone: 0, startDate: null, endDate: null, comment: null },
+      { n: 3, status: 'Pending', assignee: 'Priya Nair',   assigneeRole: 'Quality Inspector',     initials: 'PN', tasksDone: 0, startDate: null, endDate: null, comment: null },
+      { n: 4, status: 'Pending', assignee: 'K. Verma',     assigneeRole: 'Quality Head',          initials: 'KV', tasksDone: 0, startDate: null, endDate: null, comment: null },
+      { n: 5, status: 'Pending', assignee: 'V. Patil',     assigneeRole: 'Dispatch In-charge',    initials: 'VP', tasksDone: 0, startDate: null, endDate: null, comment: null },
+    ],
+    pos: [
+      { no: 'PO-2026-0503', title: 'Platform access stairs & handrails', vendor: 'Harbour Logistics Pvt. Ltd.', amount: 412500, status: 'Approved', createdBy: 'M. Delgado', approvalStatus: 'Approved' },
+    ],
+    activity: [
+      { type: 'submitted',   label: 'Submitted for Approval', actor: 'M. Delgado · Planning Officer', time: '18 Jun 2026 · 10:15', note: 'Scope defined and all 5 stage owners assigned. Awaiting GM / Director review.' },
+      { type: 'po_approved', label: 'PO Approved',            actor: 'A. Rahman · Director',           time: '16 Jun 2026 · 12:00', note: 'PO-2026-0503 approved.' },
+      { type: 'po_created',  label: 'PO Created',             actor: 'M. Delgado · Planning Officer', time: '14 Jun 2026 · 09:30', note: 'PO-2026-0503 raised from client PDF.' },
+    ],
+  },
   {
     id: 'PROJ-2026-0018',
     name: 'Structural Beams — Bay 4',
@@ -121,7 +149,7 @@ const PD_PROJECTS = [
     ],
     activity: [
       { type: 'project_completed', label: 'Project Completed', actor: 'P. Fernandes · Project Manager', time: '31 May 2026 · 18:00', note: 'All stages complete. Dispatched to site.' },
-      { type: 'stage_completed',   label: 'Stage Completed',   actor: 'K. Verma · Quality Inspector',   time: '31 May 2026 · 17:30', note: 'QC Phase sign-off complete.' },
+      { type: 'stage_completed',   label: 'Stage Completed',   actor: 'K. Verma · Quality Head',        time: '31 May 2026 · 17:30', note: 'QC Phase sign-off complete.' },
       { type: 'stage_completed',   label: 'Stage Completed',   actor: 'D. Joshi · Senior Fabricator',   time: '26 May 2026 · 16:00', note: 'Fit-Up Phase complete.' },
       { type: 'stage_completed',   label: 'Stage Completed',   actor: 'Anil Sharma · Beamline Operator', time: '18 May 2026 · 15:00', note: 'Beamline Phase complete.' },
       { type: 'project_started',   label: 'Project Started',   actor: 'M. Delgado · Planning Officer',  time: '05 May 2026 · 09:00', note: 'Project created.' },
@@ -145,9 +173,11 @@ function PDFact({ label, children, mono }) {
 
 function PDProjectBadge({ status }) {
   const map = {
-    Active:    { fg: '#15803D', bg: '#E6F6EC' },
-    Completed: { fg: '#4B5563', bg: '#F0F0EE' },
-    'On Hold': { fg: '#B45309', bg: '#FBF1DD' },
+    Active:              { fg: '#15803D', bg: '#E6F6EC' },
+    Completed:           { fg: '#4B5563', bg: '#F0F0EE' },
+    'On Hold':           { fg: '#B45309', bg: '#FBF1DD' },
+    'Awaiting Approval': { fg: '#92400E', bg: '#FBF1DD' },
+    'Sent Back':         { fg: '#B91C1C', bg: '#FBEAEA' },
   };
   const s = map[status] || map['On Hold'];
   return (
@@ -170,6 +200,9 @@ function PDActivityTimeline({ items }) {
     po_created:        { dot: '#84837C', labelBg: '#F0F0EE',  labelFg: '#4B5563'  },
     po_approved:       { dot: '#15803D', labelBg: '#E6F6EC',  labelFg: '#15803D'  },
     comment:           { dot: '#B45309', labelBg: '#FBF1DD',  labelFg: '#B45309'  },
+    submitted:         { dot: '#B45309', labelBg: '#FBF1DD',  labelFg: '#92400E'  },
+    project_approved:  { dot: '#15803D', labelBg: '#E6F6EC',  labelFg: '#15803D'  },
+    sent_back:         { dot: '#B91C1C', labelBg: '#FBEAEA',  labelFg: '#B91C1C'  },
   };
   return (
     <ol className="relative">
@@ -227,7 +260,7 @@ function ProjectList({ projects, onView, listState, setListState }) {
               <h1 className="text-[22px] font-semibold text-[#1A1A17] tracking-tight">Projects</h1>
               <p className="text-[13px] text-[#57564F] mt-0.5">{projects.length} projects · {projects.filter(p => p.status === 'Active').length} active</p>
             </div>
-            <button className={PD_PRIMARY}>
+            <button className={PD_PRIMARY} onClick={() => { window.location.href = 'Step_5_Create_Project.html'; }}>
               <Icon name="plus" className="w-[18px] h-[18px]" strokeWidth={2} /> New Project
             </button>
           </div>
@@ -250,6 +283,7 @@ function ProjectList({ projects, onView, listState, setListState }) {
               onChange={(e) => set('statusFilter', e.target.value)}
             >
               <option value="">All statuses</option>
+              <option>Awaiting Approval</option>
               <option>Active</option>
               <option>Completed</option>
               <option>On Hold</option>
@@ -310,7 +344,7 @@ function ProjectList({ projects, onView, listState, setListState }) {
                         <td className={tdCls}>
                           <button
                             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1D4ED8] hover:bg-[#E9F0FF] px-2.5 py-1.5 rounded-md"
-                            onClick={() => { localStorage.setItem('pd_project', JSON.stringify(p)); window.location.href = 'Step_6_Project_Details.html'; }}
+                            onClick={() => { localStorage.setItem('pd_project', JSON.stringify(p)); window.location.href = 'Step_7_Project_Details.html'; }}
                           >
                             <Icon name="eye" className="w-[15px] h-[15px]" /> View
                           </button>
@@ -345,7 +379,8 @@ function ProjectList({ projects, onView, listState, setListState }) {
    DETAIL — OVERVIEW TAB
    ============================================================ */
 function PDOverviewTab({ project }) {
-  const pct = Math.round((project.stagesCompleted / 4) * 100);
+  const totalStages = project.stages.length;
+  const pct = Math.round((project.stagesCompleted / totalStages) * 100);
   const cards = [
     { label: 'Project ID',    val: project.id,               mono: true  },
     { label: 'Status',        val: null,  custom: <PDProjectBadge status={project.status} /> },
@@ -359,7 +394,11 @@ function PDOverviewTab({ project }) {
             <span className="w-2 h-2 rounded-full po-pulse-dot flex-none" style={{ background: PD_STAGE[project.activeStage].color }} />
             {PD_STAGE[project.activeStage].name}
           </span>
-        : <span className="text-[14px] font-semibold text-[#15803D]">All stages complete</span>
+        : project.status === 'Completed'
+        ? <span className="text-[14px] font-semibold text-[#15803D]">All stages complete</span>
+        : project.status === 'Awaiting Approval'
+        ? <span className="text-[14px] font-semibold text-[#92400E]">Pending GM approval</span>
+        : <span className="text-[14px] font-semibold text-[#84837C]">Not started</span>
     },
     { label: 'Linked POs',   val: project.pos.length + ' PO', mono: true },
   ];
@@ -384,7 +423,7 @@ function PDOverviewTab({ project }) {
       <div className="border border-[#DEDEDA] rounded-lg bg-white px-5 py-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[13px] font-semibold text-[#1A1A17]">Overall progress</span>
-          <span className="text-[13px] font-mono font-semibold text-[#C2410C]">{project.stagesCompleted} / 4 stages</span>
+          <span className="text-[13px] font-mono font-semibold text-[#C2410C]">{project.stagesCompleted} / {totalStages} stages</span>
         </div>
         <div className="h-2.5 rounded-full bg-[#F0F0EE] overflow-hidden">
           <div className="h-full rounded-full bg-[#C2410C] transition-all duration-500" style={{ width: pct + '%' }} />
@@ -623,7 +662,7 @@ function ProjectDetail({ project, onBack, notify }) {
   const tabCount = { 'Stage Timeline': stages.length, 'Purchase Orders': project.pos.length, 'Activity': activity.length };
   const activeStage = stages.find((s) => s.status === 'In Progress');
   const completedCount = stages.filter((s) => s.status === 'Completed').length;
-  const pct = Math.round((completedCount / 4) * 100);
+  const pct = Math.round((completedCount / stages.length) * 100);
 
   return (
     <div className="flex flex-col h-full">
@@ -688,7 +727,7 @@ function ProjectDetail({ project, onBack, notify }) {
               <PDFact label="Start Date" mono>{fmtDate(project.startDate)}</PDFact>
               <PDFact label="Target Date" mono>{fmtDate(project.targetDate)}</PDFact>
               <PDFact label="Linked PO" mono>{project.pos.map(p => p.no).join(', ')}</PDFact>
-              <PDFact label="Progress" mono>{pct}% · {completedCount}/4 stages</PDFact>
+              <PDFact label="Progress" mono>{pct}% · {completedCount}/{stages.length} stages</PDFact>
             </div>
 
             {/* overall progress bar */}
@@ -750,13 +789,13 @@ function ProjectDetail({ project, onBack, notify }) {
 }
 
 /* ============================================================
-   SCREEN PROJECTS — list only (detail is Step_6_Project_Details.html)
+   SCREEN PROJECTS — list only (detail is Step_7_Project_Details.html)
    ============================================================ */
 function ScreenProjects({ notify }) {
   const [listState, setListState] = React.useState({ search: '', statusFilter: '', page: 1 });
   const handleView = (project) => {
     localStorage.setItem('pd_project', JSON.stringify(project));
-    window.location.href = 'Step_6_Project_Details.html';
+    window.location.href = 'Step_7_Project_Details.html';
   };
   return <ProjectList projects={PD_PROJECTS} onView={handleView} listState={listState} setListState={setListState} />;
 }

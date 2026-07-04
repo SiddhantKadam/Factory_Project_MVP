@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Factory MVP — Phase Wireframes (Low-Fidelity)</title>
+<style>
+  :root{
+    --ink:#2b2b2b; --ink2:#555; --ink3:#8a8a8a; --line:#c8c8c8; --line2:#dddddd;
+    --fill:#f2f2f0; --fill2:#e7e7e4; --white:#ffffff; --page:#e9e9e6;
+    --note:#1d4ed8; --noteBg:#eaf0ff; --hold:#b45309; --holdBg:#fbf1dd;
+    --ok:#15803d; --okBg:#e6f6ec; --bad:#b91c1c; --badBg:#fbeaea;
+    --mono:'DejaVu Sans Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px;}
+
+  /* ---- doc header ---- */
+  .doc-head{border:2px solid var(--ink);background:var(--white);padding:26px 30px;margin-bottom:34px;}
+  .doc-head .kick{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink3);}
+  .doc-head h1{margin:6px 0 4px;font-size:26px;letter-spacing:-.5px;}
+  .doc-head p{margin:8px 0 0;color:var(--ink2);max-width:820px;}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);}
+  .legend span{font-family:var(--mono);font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:7px;}
+  .sw{width:22px;height:12px;border:1px solid var(--line);display:inline-block;}
+
+  /* ---- flow strip ---- */
+  .flow{display:flex;align-items:stretch;gap:0;margin-bottom:40px;border:1px dashed var(--line);background:var(--white);padding:16px;}
+  .flow .node{flex:1;text-align:center;padding:10px 6px;position:relative;}
+  .flow .node .n{font-family:var(--mono);font-size:11px;color:var(--ink3);}
+  .flow .node .t{font-weight:700;font-size:14px;margin-top:2px;}
+  .flow .node .d{font-size:11px;color:var(--ink2);margin-top:3px;line-height:1.3;}
+  .flow .arrow{align-self:center;color:var(--line);font-size:20px;padding:0 2px;}
+
+  /* ---- phase block ---- */
+  .phase{margin-bottom:56px;}
+  .phase-tag{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;
+    background:var(--ink);color:#fff;padding:6px 14px;letter-spacing:1px;text-transform:uppercase;}
+  .phase h2{font-size:22px;margin:14px 0 4px;letter-spacing:-.4px;}
+  .phase .sub{color:var(--ink2);margin:0 0 4px;max-width:900px;}
+  .realflow{font-family:var(--mono);font-size:11.5px;color:var(--ink2);background:var(--fill);
+    border-left:3px solid var(--ink3);padding:9px 12px;margin:12px 0 20px;}
+  .realflow b{color:var(--ink);}
+
+  /* ---- the wireframe screen ---- */
+  .screen{border:2px solid var(--ink);background:var(--white);}
+  .browserbar{background:var(--fill2);border-bottom:1px solid var(--line);padding:7px 12px;display:flex;align-items:center;gap:6px;}
+  .browserbar .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);background:var(--white);}
+  .browserbar .url{flex:1;margin-left:10px;font-family:var(--mono);font-size:11px;color:var(--ink3);
+    background:var(--white);border:1px solid var(--line);padding:3px 10px;}
+
+  /* app chrome */
+  .appbar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--white);}
+  .crumb{font-family:var(--mono);font-size:11px;color:var(--ink2);flex:1;}
+  .crumb b{color:var(--ink);}
+  .pill{border:1px solid var(--line);padding:3px 10px;font-size:11px;font-family:var(--mono);background:var(--fill);}
+  .pill.role{border-style:solid;display:inline-flex;align-items:center;gap:6px;background:var(--white);}
+  .pill.role::after{content:"▾";color:var(--ink3);}
+  .pill.edit{background:var(--okBg);border-color:#bfe3cb;color:var(--ok);}
+  .pill.view{background:var(--fill);color:var(--ink2);}
+
+  /* stepper */
+  .stepper{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line2);gap:0;background:var(--fill);}
+  .stepper .st{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .stepper .st .c{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--white);
+    display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink3);}
+  .stepper .st.done .c{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .stepper .st.active .c{background:var(--white);border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 3px var(--fill2);}
+  .stepper .st .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink2);}
+  .stepper .st.active .lbl{font-weight:700;color:var(--ink);}
+  .stepper .bar{flex:1;height:2px;background:var(--line);margin-top:-16px;max-width:70px;}
+  .stepper .bar.done{background:var(--ink);}
+
+  /* body grid */
+  .body{display:grid;grid-template-columns:1fr 300px;gap:0;}
+  .main{padding:18px 20px;border-right:1px solid var(--line2);}
+  .side{padding:18px 16px;background:#fbfbfa;}
+  @media(max-width:800px){.body{grid-template-columns:1fr;}.main{border-right:none;border-bottom:1px solid var(--line2);}}
+
+  /* hero */
+  .hero{border:1px solid var(--line);padding:14px;margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;background:var(--white);}
+  .hero .num{width:44px;height:44px;border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:20px;flex:none;}
+  .hero .meta{flex:1;min-width:0;}
+  .hero .title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .hero h3{margin:0;font-size:18px;}
+  .hero .facts{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:5px;}
+  .hero .pct{text-align:center;flex:none;}
+  .hero .pct .big{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;}
+  .hero .pct .sm{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+
+  .badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border:1px solid var(--line);background:var(--fill);}
+  .badge.prog{background:var(--noteBg);border-color:#bcd0ff;color:var(--note);}
+  .badge.done{background:var(--okBg);border-color:#bfe3cb;color:var(--ok);}
+  .badge.hold{background:var(--holdBg);border-color:#e6cfa0;color:var(--hold);}
+  .badge.lock{background:var(--fill2);color:var(--ink3);}
+
+  /* section card */
+  .card{border:1px solid var(--line);margin-bottom:16px;background:var(--white);}
+  .card > .ch{padding:9px 13px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:9px;background:var(--fill);}
+  .card > .ch h4{margin:0;font-size:13px;}
+  .card > .ch .cnt{font-family:var(--mono);font-size:10px;background:var(--white);border:1px solid var(--line);padding:1px 6px;}
+  .card > .ch .right{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink2);}
+  .card .cb{padding:12px 13px;}
+
+  /* checklist */
+  .chk{list-style:none;margin:0;padding:0;}
+  .chk li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line2);}
+  .chk li:last-child{border-bottom:none;}
+  .box{width:18px;height:18px;border:2px solid var(--line);flex:none;margin-top:1px;}
+  .box.on{background:var(--ink);border-color:var(--ink);position:relative;}
+  .box.on::after{content:"✓";color:#fff;font-size:12px;position:absolute;top:-2px;left:2px;}
+  .chk .txt{flex:1;font-size:13px;}
+  .chk .txt.done{color:var(--ink3);text-decoration:line-through;}
+  .chk .txt .req{color:var(--bad);font-weight:700;}
+  .chk .who{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{text-align:left;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);
+    padding:6px 8px;border-bottom:1px solid var(--line);background:var(--fill);}
+  td{padding:6px 8px;border-bottom:1px dashed var(--line2);}
+  td.mono,.mono-c{font-family:var(--mono);}
+  tr:last-child td{border-bottom:none;}
+  .tag{font-family:var(--mono);font-size:10px;border:1px solid var(--line);padding:1px 6px;background:var(--fill);}
+  .tag.ok{background:var(--okBg);border-color:#bfe3cb;color:var(--ok);}
+  .tag.no{background:var(--badBg);border-color:#e3bfbf;color:var(--bad);}
+  .tag.wait{background:var(--holdBg);border-color:#e6cfa0;color:var(--hold);}
+
+  /* form fields */
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .fields.three{grid-template-columns:1fr 1fr 1fr;}
+  .fld{display:flex;flex-direction:column;gap:4px;}
+  .fld label{font-family:var(--mono);font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.4px;}
+  .fld .inp{border:1px solid var(--line);background:var(--white);padding:7px 9px;font-size:12px;color:var(--ink3);font-family:var(--mono);}
+  .fld .inp.area{min-height:52px;}
+  .fld.full{grid-column:1/-1;}
+
+  /* upload dropzone */
+  .drop{border:2px dashed var(--line);background:var(--fill);padding:16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink3);}
+  .drop .ic{font-size:20px;color:var(--line);}
+
+  /* doc rows */
+  .doc{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line2);}
+  .doc:last-child{border-bottom:none;}
+  .doc .ft{width:34px;height:34px;border:1px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:9px;flex:none;background:var(--fill);}
+  .doc .dn{font-family:var(--mono);font-size:11px;}
+  .doc .dm{font-family:var(--mono);font-size:9.5px;color:var(--ink3);}
+
+  /* side info list */
+  .info{font-size:12px;}
+  .info .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line2);}
+  .info .row:last-child{border-bottom:none;}
+  .info .k{color:var(--ink2);}
+  .info .v{font-family:var(--mono);font-weight:600;}
+
+  /* buttons */
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .bt{border:1.5px solid var(--ink);background:var(--white);padding:7px 14px;font-size:12px;font-family:var(--mono);cursor:default;}
+  .bt.solid{background:var(--ink);color:#fff;}
+  .bt.ghost{border-color:var(--line);color:var(--ink2);}
+  .bt.danger{border-color:var(--bad);color:var(--bad);}
+  .bt.dis{border-color:var(--line);color:var(--ink3);background:var(--fill);}
+
+  /* banner */
+  .banner{border:1px solid var(--line);border-left:4px solid var(--ink3);background:var(--fill);padding:9px 12px;font-size:12px;margin-bottom:16px;font-family:var(--mono);}
+  .banner.hold{border-left-color:var(--hold);background:var(--holdBg);}
+  .banner.ok{border-left-color:var(--ok);background:var(--okBg);}
+
+  /* annotation callouts */
+  .anno{margin-top:14px;border:1px dashed var(--note);background:var(--noteBg);padding:12px 14px;}
+  .anno .at{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--note);font-weight:700;margin-bottom:6px;}
+  .anno ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink);}
+  .anno ul li{margin:3px 0;}
+  .anno ul li b{color:var(--note);}
+
+  .subhead{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin:26px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= DOC HEADER ================= -->
+  <div class="doc-head">
+    <div class="kick">Low-Fidelity Wireframes · Design Analysis</div>
+    <h1>Factory MVP — 5 Production Phases</h1>
+    <p>Structural-steel fabrication shop floor. Each phase below is wireframed from the <b>real manufacturing sequence</b> (material traceability → machining → assembly → inspection → delivery), then mapped to the app screen. Blue dashed boxes are <b>design annotations</b> explaining why each element exists.</p>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--white)"></i> input / editable</span>
+      <span><i class="sw" style="background:var(--fill)"></i> read-only / data</span>
+      <span><i class="sw" style="border-style:dashed"></i> upload / drop zone</span>
+      <span><i class="sw" style="background:var(--ink)"></i> completed step</span>
+      <span><i class="sw" style="background:var(--noteBg);border-color:var(--note)"></i> annotation</span>
+    </div>
+  </div>
+
+  <!-- ================= MASTER FLOW ================= -->
+  <div class="flow">
+    <div class="node"><div class="n">01 · STORE→SHOP</div><div class="t">Cutting</div><div class="d">Material issue, traceability, profile cutting</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="n">02 · CNC LINE</div><div class="t">Beamline</div><div class="d">Drilling, coping, layout marking</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="n">03 · ASSEMBLY</div><div class="t">Fit-Up</div><div class="d">Tack weld, alignment, HOLD inspection</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="n">04 · INSPECT+PAINT</div><div class="t">QC</div><div class="d">NDT, dimensional, blast, DFT, ITP sign-off</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="n">05 · SHIPPING</div><div class="t">Dispatch</div><div class="d">Reconcile, pack, delivery note, POD</div></div>
+  </div>
+
+
+  <!-- ============================================================
+       PHASE 1 — CUTTING
+       ============================================================ -->
+  <section class="phase">
+    <span class="phase-tag">Phase 01 / 05 · Cutting</span>
+    <h2>Cutting — Material Issue &amp; Profile Cutting</h2>
+    <p class="sub">Owner: Project Manager · Machine operator executes. The traceability spine of the whole job starts here.</p>
+    <div class="realflow"><b>Real shop flow:</b> Store issues plate/section against cut list → operator records <b>heat no. + material grade + MTC</b> → nest for yield → cut (plasma / oxy / band-saw) → deburr → <b>hard-stamp part mark + heat no.</b> on each piece → dimensional check → log offcut/scrap.</div>
+
+    <div class="screen">
+      <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">/projects/PROJ-2026-0018/phase/cutting</span></div>
+      <div class="appbar">
+        <div class="crumb">Home / Projects / <b>PROJ-2026-0018</b> / Cutting</div>
+        <span class="pill role">Role: Project Manager</span>
+        <span class="pill edit">Edit</span>
+      </div>
+      <div class="stepper">
+        <div class="st active"><div class="c">1</div><div class="lbl">Cutting</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">2</div><div class="lbl">Beamline</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">3</div><div class="lbl">Fit-Up</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">4</div><div class="lbl">QC</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">5</div><div class="lbl">Dispatch</div></div>
+      </div>
+
+      <div class="body">
+        <div class="main">
+          <div class="hero">
+            <div class="num">1</div>
+            <div class="meta">
+              <div class="title-row"><h3>Cutting</h3><span class="badge prog">● In Progress</span><span class="mono-c" style="font-size:11px;color:var(--ink3)">Phase 1 of 5</span></div>
+              <div class="facts">Structural Beams — Bay 4 · Acme Infra · PO-2026-0042 · Target 30 Jun 2026</div>
+            </div>
+            <div class="pct"><div class="big">40%</div><div class="sm">2/5 tasks</div></div>
+          </div>
+
+          <!-- CUT LIST — the real core of this screen -->
+          <div class="card">
+            <div class="ch"><h4>Cut List</h4><span class="cnt">6 parts</span><span class="right">Yield 87% · Scrap 13%</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Part Mark</th><th>Profile / Grade</th><th>Length</th><th>Qty</th><th>Heat No.</th><th>Method</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">B-101</td><td class="mono">ISMB 400 · E250</td><td class="mono">6000 mm</td><td class="mono">4</td><td class="mono">HT-99341</td><td class="mono">Band saw</td><td><span class="tag ok">Cut</span></td></tr>
+                  <tr><td class="mono">B-102</td><td class="mono">ISMB 400 · E250</td><td class="mono">4500 mm</td><td class="mono">2</td><td class="mono">HT-99341</td><td class="mono">Band saw</td><td><span class="tag ok">Cut</span></td></tr>
+                  <tr><td class="mono">PL-12</td><td class="mono">Plate 12mm · E250</td><td class="mono">300×300</td><td class="mono">8</td><td class="mono">HT-88120</td><td class="mono">Plasma</td><td><span class="tag wait">Queued</span></td></tr>
+                  <tr><td class="mono">CL-05</td><td class="mono">Angle 75×75×6</td><td class="mono">220 mm</td><td class="mono">16</td><td class="mono">HT-88120</td><td class="mono">Shear</td><td><span class="tag wait">Queued</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- MATERIAL TRACEABILITY -->
+          <div class="card">
+            <div class="ch"><h4>Material Traceability</h4><span class="right">MTC linked</span></div>
+            <div class="cb">
+              <div class="fields three">
+                <div class="fld"><label>Heat No.</label><div class="inp">HT-99341</div></div>
+                <div class="fld"><label>Grade / Spec</label><div class="inp">IS 2062 E250</div></div>
+                <div class="fld"><label>Mill Test Cert</label><div class="inp">MTC-4471.pdf ↗</div></div>
+                <div class="fld"><label>Issued From Store</label><div class="inp">Rack C-14 · 2.4 T</div></div>
+                <div class="fld"><label>Offcut Returned</label><div class="inp">0.31 T → Rack R-2</div></div>
+                <div class="fld"><label>Piece Marking</label><div class="inp">Hard stamp ✓</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="card">
+            <div class="ch"><h4>Checklist</h4><span class="cnt">2/5</span><span class="right">40%</span></div>
+            <div class="cb">
+              <ul class="chk">
+                <li><span class="box on"></span><div><div class="txt done">Approved drawings received &amp; reviewed <span class="req">*</span></div><div class="who">✓ R. Kumar · 12 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Raw material heat no. verified vs MTC <span class="req">*</span></div><div class="who">✓ R. Kumar · 12 Jun</div></div></li>
+                <li><span class="box"></span><div class="txt">Cutting equipment calibrated <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Cut pieces labelled &amp; hard-stamped <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Cut-edge dimensional inspection <span class="req">*</span></div></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- comments -->
+          <div class="card">
+            <div class="ch"><h4>Comments</h4></div>
+            <div class="cb">
+              <div style="display:flex;gap:9px;margin-bottom:10px;"><div class="ft" style="border-radius:50%;width:28px;height:28px">RK</div>
+                <div style="flex:1;border:1px solid var(--line2);background:var(--fill);padding:7px 10px;"><div class="mono-c" style="font-size:11px;">R. Kumar · <span style="color:var(--ink3)">Project Manager · 11 Jun 14:32</span></div><div style="font-size:12px;margin-top:3px;">Drawings updated to rev B — awaiting new cut schedule.</div></div></div>
+              <div class="inp fld" style="border:1px solid var(--line);padding:8px;font-family:var(--mono);font-size:11px;color:var(--ink3)">Add a comment…</div>
+              <div class="btns"><span class="bt ghost">⚑ Raise Dispute</span><span class="bt solid" style="margin-left:auto">Post</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIDE -->
+        <div class="side">
+          <div class="card">
+            <div class="ch"><h4>Documents</h4><span class="cnt">3</span></div>
+            <div class="cb">
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">cutting-plan-v2.pdf</div><div class="dm">1.2 MB · R.Kumar · 12 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">MTC-4471.pdf</div><div class="dm">640 KB · Store · 10 Jun</div></div></div>
+              <div class="doc"><div class="ft">IMG</div><div><div class="dn">raw-material.jpg</div><div class="dm">820 KB · R.Kumar · 12 Jun</div></div></div>
+              <div class="drop" style="margin-top:10px"><div class="ic">⬆</div>Drop file · pick type ▾ · Upload</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Machine &amp; Shift</h4></div>
+            <div class="cb info">
+              <div class="row"><span class="k">Machine</span><span class="v">Bandsaw BS-02</span></div>
+              <div class="row"><span class="k">Operator</span><span class="v">S. Iyer</span></div>
+              <div class="row"><span class="k">Shift</span><span class="v">A · 06–14</span></div>
+              <div class="row"><span class="k">Started</span><span class="v">11 Jun</span></div>
+              <div class="row"><span class="k">Assignee</span><span class="v">R. Kumar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno">
+      <div class="at">Why these elements — real-world mapping</div>
+      <ul>
+        <li><b>Cut List table</b> — the operator works from a part-by-part list (mark, profile, length, qty, method), not a generic checklist. Per-row status shows shop progress.</li>
+        <li><b>Material traceability</b> — steel jobs are audited on <b>heat number → MTC</b>. If this isn't captured at cutting, the whole job fails traceability at QC/dispatch.</li>
+        <li><b>Yield / scrap %</b> — nesting efficiency is a real cost KPI the PM watches.</li>
+        <li><b>Hard-stamp confirmation</b> — every piece must carry its part mark + heat no. downstream; it's a required checklist gate.</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       PHASE 2 — BEAMLINE
+       ============================================================ -->
+  <section class="phase">
+    <span class="phase-tag">Phase 02 / 05 · Beamline</span>
+    <h2>Beamline — Drilling, Coping &amp; Layout</h2>
+    <p class="sub">Owner: Project Manager · CNC beam-line operator executes. Turns raw cut members into drilled, coped, marked members ready to assemble.</p>
+    <div class="realflow"><b>Real shop flow:</b> Cut beam loaded to CNC line (e.g. Peddinghaus) → <b>drill bolt holes</b> per connection detail → <b>cope / notch</b> beam ends for framing → <b>mark fitting layout</b> (cleats, stiffeners) → verify hole positions &amp; part mark.</div>
+
+    <div class="screen">
+      <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">/projects/PROJ-2026-0018/phase/beamline</span></div>
+      <div class="appbar">
+        <div class="crumb">Home / Projects / <b>PROJ-2026-0018</b> / Beamline</div>
+        <span class="pill role">Role: Project Manager</span>
+        <span class="pill edit">Edit</span>
+      </div>
+      <div class="stepper">
+        <div class="st done"><div class="c">✓</div><div class="lbl">Cutting</div></div>
+        <div class="bar done"></div>
+        <div class="st active"><div class="c">2</div><div class="lbl">Beamline</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">3</div><div class="lbl">Fit-Up</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">4</div><div class="lbl">QC</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">5</div><div class="lbl">Dispatch</div></div>
+      </div>
+
+      <div class="body">
+        <div class="main">
+          <div class="hero">
+            <div class="num">2</div>
+            <div class="meta">
+              <div class="title-row"><h3>Beamline</h3><span class="badge prog">● In Progress</span><span class="mono-c" style="font-size:11px;color:var(--ink3)">Phase 2 of 5</span></div>
+              <div class="facts">Structural Beams — Bay 4 · WPS-2026-04 · Target 30 Jun 2026</div>
+            </div>
+            <div class="pct"><div class="big">33%</div><div class="sm">2/6 tasks</div></div>
+          </div>
+
+          <!-- OPERATIONS PER MEMBER -->
+          <div class="card">
+            <div class="ch"><h4>Machining Operations</h4><span class="cnt">per member</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Part Mark</th><th>Holes (Ø×n)</th><th>Cope</th><th>Layout Mark</th><th>Progress</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">B-101</td><td class="mono">22Ø × 12</td><td><span class="tag ok">Both ends</span></td><td><span class="tag ok">Done</span></td><td><span class="tag ok">Complete</span></td></tr>
+                  <tr><td class="mono">B-102</td><td class="mono">22Ø × 8</td><td><span class="tag ok">1 end</span></td><td><span class="tag wait">In prog</span></td><td><span class="tag wait">60%</span></td></tr>
+                  <tr><td class="mono">C-201</td><td class="mono">18Ø × 6</td><td class="mono">—</td><td><span class="tag wait">Queued</span></td><td><span class="tag wait">0%</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- HOLE SCHEDULE + SETUP -->
+          <div class="card">
+            <div class="ch"><h4>Line Setup &amp; Verification</h4></div>
+            <div class="cb">
+              <div class="fields three">
+                <div class="fld"><label>CNC Program</label><div class="inp">NC1 · B101.nc1</div></div>
+                <div class="fld"><label>Drill Bit Ø</label><div class="inp">22 mm HSS</div></div>
+                <div class="fld"><label>Hole Pos. Tol.</label><div class="inp">± 0.5 mm</div></div>
+                <div class="fld"><label>Datum / Ref Edge</label><div class="inp">Left, top flange</div></div>
+                <div class="fld"><label>Layout Method</label><div class="inp">Auto-scribe</div></div>
+                <div class="fld"><label>Machine</label><div class="inp">Beamline BL-01</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="card">
+            <div class="ch"><h4>Checklist</h4><span class="cnt">2/6</span><span class="right">33%</span></div>
+            <div class="cb">
+              <ul class="chk">
+                <li><span class="box on"></span><div><div class="txt done">Beamline machine setup verified <span class="req">*</span></div><div class="who">✓ P. Sharma · 13 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">CNC program loaded &amp; datum set <span class="req">*</span></div><div class="who">✓ P. Sharma · 13 Jun</div></div></li>
+                <li><span class="box"></span><div class="txt">All bolt holes drilled to schedule <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Beam-end copes / notches cut <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Fitting layout marked on members <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Hole position &amp; part-mark QC check</div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="card">
+            <div class="ch"><h4>Documents</h4><span class="cnt">2</span></div>
+            <div class="cb">
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">WPS-2026-04.pdf</div><div class="dm">890 KB · 13 Jun</div></div></div>
+              <div class="doc"><div class="ft">DXF</div><div><div class="dn">B101.nc1</div><div class="dm">CNC · 13 Jun</div></div></div>
+              <div class="drop" style="margin-top:10px"><div class="ic">⬆</div>WPS / NC / Photo ▾</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Phase Info</h4></div>
+            <div class="cb info">
+              <div class="row"><span class="k">Phase</span><span class="v">2 of 5</span></div>
+              <div class="row"><span class="k">Started</span><span class="v">13 Jun</span></div>
+              <div class="row"><span class="k">Members</span><span class="v">1 / 3 done</span></div>
+              <div class="row"><span class="k">Operator</span><span class="v">P. Sharma</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno">
+      <div class="at">Why these elements — real-world mapping</div>
+      <ul>
+        <li><b>Per-member operations table</b> — beamline work is tracked member-by-member across 3 operations (drill / cope / mark). A single % bar hides which members are stuck.</li>
+        <li><b>Hole schedule + position tolerance</b> — bolt holes must match the connection detail within tolerance, else fit-up fails downstream. This is the phase's key quality data.</li>
+        <li><b>CNC program / .nc1 file link</b> — modern beamlines run off DSTV/NC files; linking the program closes the loop from drawing to machine.</li>
+        <li><b>Layout marking</b> — where cleats/stiffeners sit is scribed here so the fit-up team assembles correctly.</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       PHASE 3 — FIT-UP
+       ============================================================ -->
+  <section class="phase">
+    <span class="phase-tag">Phase 03 / 05 · Fit-Up</span>
+    <h2>Fit-Up — Assembly, Tack &amp; HOLD Inspection</h2>
+    <p class="sub">Owner: Quality Inspector · This is a <b>HOLD point</b> — full welding cannot start until fit-up is passed.</p>
+    <div class="realflow"><b>Real shop flow:</b> Fitter assembles main member + fittings per layout → sets <b>root gap</b> &amp; alignment → tack welds → inspector checks <b>dimensions (length, squareness, camber, diagonal)</b> and <b>weld joint prep</b> → Pass = release to weld / Fail = rework / Dispute = escalate.</div>
+
+    <div class="screen">
+      <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">/projects/PROJ-2026-0018/phase/fit-up</span></div>
+      <div class="appbar">
+        <div class="crumb">Home / Projects / <b>PROJ-2026-0018</b> / Fit-Up</div>
+        <span class="pill role">Role: Quality Inspector</span>
+        <span class="pill edit">Edit</span>
+      </div>
+      <div class="stepper">
+        <div class="st done"><div class="c">✓</div><div class="lbl">Cutting</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">Beamline</div></div>
+        <div class="bar done"></div>
+        <div class="st active"><div class="c">3</div><div class="lbl">Fit-Up</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">4</div><div class="lbl">QC</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">5</div><div class="lbl">Dispatch</div></div>
+      </div>
+
+      <div class="body">
+        <div class="main">
+          <div class="hero">
+            <div class="num">3</div>
+            <div class="meta">
+              <div class="title-row"><h3>Fit-Up</h3><span class="badge hold">⚑ HOLD point</span><span class="mono-c" style="font-size:11px;color:var(--ink3)">Phase 3 of 5</span></div>
+              <div class="facts">Structural Beams — Bay 4 · Assembly DRG A-14 · Target 30 Jun 2026</div>
+            </div>
+            <div class="pct"><div class="big">67%</div><div class="sm">4/6 tasks</div></div>
+          </div>
+
+          <div class="banner hold">⚑ HOLD — welding is blocked until this fit-up is <b>Approved</b> by QC. Fail returns member to rework.</div>
+
+          <!-- FITTING BOM -->
+          <div class="card">
+            <div class="ch"><h4>Fitting Assembly (BOM)</h4><span class="cnt">4 items</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Fitting Mark</th><th>Type</th><th>Qty</th><th>Position</th><th>Fitted</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">CL-05</td><td class="mono">End cleat</td><td class="mono">2</td><td class="mono">Both ends</td><td><span class="tag ok">✓</span></td></tr>
+                  <tr><td class="mono">ST-03</td><td class="mono">Web stiffener</td><td class="mono">4</td><td class="mono">@ 1.5m ctrs</td><td><span class="tag ok">✓</span></td></tr>
+                  <tr><td class="mono">EP-01</td><td class="mono">End plate</td><td class="mono">1</td><td class="mono">Left end</td><td><span class="tag wait">Fitting</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- INSPECTION / DIMENSIONAL SURVEY -->
+          <div class="card">
+            <div class="ch"><h4>Fit-Up Inspection Form</h4><span class="right">± tolerance check</span></div>
+            <div class="cb">
+              <div class="fields three">
+                <div class="fld"><label>Overall Length</label><div class="inp">6000 / +2 mm ✓</div></div>
+                <div class="fld"><label>Root Gap</label><div class="inp">3.5 mm (±0.5) ✓</div></div>
+                <div class="fld"><label>Joint Alignment</label><div class="inp">+0.2 mm ✓</div></div>
+                <div class="fld"><label>Squareness</label><div class="inp">1.0 mm ✓</div></div>
+                <div class="fld"><label>Diagonal Diff.</label><div class="inp">2 mm ✓</div></div>
+                <div class="fld"><label>Camber</label><div class="inp">3 mm (spec 5) ✓</div></div>
+                <div class="fld"><label>Bevel Angle</label><div class="inp">35° ✓</div></div>
+                <div class="fld"><label>Root Face</label><div class="inp">1.5 mm ✓</div></div>
+                <div class="fld"><label>Tack Weld</label><div class="inp">Per WPS ✓</div></div>
+                <div class="fld full"><label>Inspector Notes</label><div class="inp area">All 4 primary members within tolerance. End plate EP-01 pending final tack before sign-off.</div></div>
+              </div>
+              <div class="btns">
+                <span class="bt">Save Progress</span>
+                <span class="bt ghost">⚑ Raise Dispute</span>
+                <span class="bt danger">✕ Reject / Rework</span>
+                <span class="bt solid" style="margin-left:auto">✓ Approve Fit-Up</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="card">
+            <div class="ch"><h4>Checklist</h4><span class="cnt">4/6</span><span class="right">67%</span></div>
+            <div class="cb">
+              <ul class="chk">
+                <li><span class="box on"></span><div><div class="txt done">Member identification verified <span class="req">*</span></div><div class="who">✓ K. Nair · 14 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Fittings assembled per layout <span class="req">*</span></div><div class="who">✓ K. Nair · 14 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Root gap &amp; alignment recorded <span class="req">*</span></div><div class="who">✓ K. Nair · 14 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Bevels dressed &amp; clean <span class="req">*</span></div><div class="who">✓ K. Nair · 14 Jun</div></div></li>
+                <li><span class="box"></span><div class="txt">Inspection form completed &amp; signed <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Fit-up approved for welding <span class="req">*</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="card">
+            <div class="ch"><h4>Documents</h4><span class="cnt">3</span></div>
+            <div class="cb">
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">assembly-drg-A14.pdf</div><div class="dm">1.1 MB · 14 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">weld-map-01.pdf</div><div class="dm">720 KB · 14 Jun</div></div></div>
+              <div class="doc"><div class="ft">IMG</div><div><div class="dn">joint-photo-001.jpg</div><div class="dm">950 KB · 14 Jun</div></div></div>
+              <div class="drop" style="margin-top:10px"><div class="ic">⬆</div>Report / Photo / Sketch ▾</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Weld Reference</h4></div>
+            <div class="cb info">
+              <div class="row"><span class="k">WPS</span><span class="v">WPS-2026-04</span></div>
+              <div class="row"><span class="k">Joint type</span><span class="v">Butt · full pen</span></div>
+              <div class="row"><span class="k">Process</span><span class="v">SMAW / FCAW</span></div>
+              <div class="row"><span class="k">Welder ID</span><span class="v">W-118</span></div>
+              <div class="row"><span class="k">Inspector</span><span class="v">K. Nair (QI)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno">
+      <div class="at">Why these elements — real-world mapping</div>
+      <ul>
+        <li><b>HOLD-point banner + 3-way action</b> (Approve / Reject / Dispute) — fit-up is a mandatory inspection gate; welding is literally blocked until pass. This is the single most important control on the screen.</li>
+        <li><b>Full dimensional survey</b> — real inspectors record length, squareness, camber, diagonal, root gap AND weld-prep (bevel, root face) — not just 2 fields. Each shows value vs tolerance.</li>
+        <li><b>Fitting BOM</b> — fit-up = assembling many small fittings onto the member; a checklist per fitting mark mirrors the shop traveller.</li>
+        <li><b>Weld reference panel</b> (WPS, joint type, welder ID) — traceability for the weld that follows.</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       PHASE 4 — QC
+       ============================================================ -->
+  <section class="phase">
+    <span class="phase-tag">Phase 04 / 05 · QC</span>
+    <h2>QC — Weld NDT, Dimensional &amp; Paint/DFT</h2>
+    <p class="sub">Owner: Quality Head · Often includes <b>Third-Party Inspection (TPI)</b> hold points. Releases the member to dispatch.</p>
+    <div class="realflow"><b>Real shop flow:</b> Visual weld inspection → <b>NDT (UT / MPI / DPI / RT)</b> → log defects → final dimensional report → surface blast (Sa 2.5) → primer + top coat → <b>DFT readings per zone</b> → raise NCR if non-conforming → <b>ITP sign-off + TPI witness</b> → QC certificate.</div>
+
+    <div class="screen">
+      <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">/projects/PROJ-2026-0018/phase/qc</span></div>
+      <div class="appbar">
+        <div class="crumb">Home / Projects / <b>PROJ-2026-0018</b> / QC</div>
+        <span class="pill role">Role: Quality Head</span>
+        <span class="pill edit">Edit</span>
+      </div>
+      <div class="stepper">
+        <div class="st done"><div class="c">✓</div><div class="lbl">Cutting</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">Beamline</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">Fit-Up</div></div>
+        <div class="bar done"></div>
+        <div class="st active"><div class="c">4</div><div class="lbl">QC</div></div>
+        <div class="bar"></div>
+        <div class="st"><div class="c">5</div><div class="lbl">Dispatch</div></div>
+      </div>
+
+      <div class="body">
+        <div class="main">
+          <div class="hero">
+            <div class="num">4</div>
+            <div class="meta">
+              <div class="title-row"><h3>QC — Inspection &amp; Finishing</h3><span class="badge prog">● In Progress</span><span class="mono-c" style="font-size:11px;color:var(--ink3)">Phase 4 of 5</span></div>
+              <div class="facts">Structural Beams — Bay 4 · ITP-2026-018 · TPI: Lloyd's · Target 30 Jun</div>
+            </div>
+            <div class="pct"><div class="big">83%</div><div class="sm">5/6 tasks</div></div>
+          </div>
+
+          <!-- NDT LOG -->
+          <div class="card">
+            <div class="ch"><h4>NDT &amp; Weld Inspection Log</h4><span class="cnt">4 welds</span><span class="right">0 defects open</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Weld ID</th><th>Method</th><th>Extent</th><th>Result</th><th>NCR</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">W-01</td><td class="mono">Visual + UT</td><td class="mono">100%</td><td><span class="tag ok">Accept</span></td><td class="mono">—</td></tr>
+                  <tr><td class="mono">W-02</td><td class="mono">MPI</td><td class="mono">100%</td><td><span class="tag ok">Accept</span></td><td class="mono">—</td></tr>
+                  <tr><td class="mono">W-03</td><td class="mono">UT</td><td class="mono">20%</td><td><span class="tag no">Reject→repaired</span></td><td class="mono">NCR-07 closed</td></tr>
+                  <tr><td class="mono">W-04</td><td class="mono">DPI</td><td class="mono">100%</td><td><span class="tag wait">Pending</span></td><td class="mono">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DFT READINGS -->
+          <div class="card">
+            <div class="ch"><h4>Paint / DFT Readings</h4><span class="right">Spec: primer 75–95 · top 100–130 µm</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Zone</th><th>Surface Prep</th><th>Primer µm</th><th>Top Coat µm</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">A · Web</td><td class="mono">Sa 2.5</td><td class="mono">82</td><td class="mono">118</td><td><span class="tag ok">In spec</span></td></tr>
+                  <tr><td class="mono">B · Top flange</td><td class="mono">Sa 2.5</td><td class="mono">85</td><td class="mono">112</td><td><span class="tag ok">In spec</span></td></tr>
+                  <tr><td class="mono">C · Bot flange</td><td class="mono">Sa 2.5</td><td class="mono">80</td><td class="mono">115</td><td><span class="tag ok">In spec</span></td></tr>
+                  <tr><td class="mono">D · Stiffeners</td><td class="mono">Sa 2.5</td><td class="mono">88</td><td class="mono">110</td><td><span class="tag ok">In spec</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ITP + actions -->
+          <div class="card">
+            <div class="ch"><h4>ITP Sign-off</h4><span class="right">Hold / Witness / Review</span></div>
+            <div class="cb">
+              <div class="fields three">
+                <div class="fld"><label>Dimensional Report</label><div class="inp">DR-018.pdf ✓</div></div>
+                <div class="fld"><label>TPI Witness (Lloyd's)</label><div class="inp">Witnessed 16 Jun ✓</div></div>
+                <div class="fld"><label>QC Certificate</label><div class="inp">Pending sign ✎</div></div>
+              </div>
+              <div class="btns">
+                <span class="bt danger">⚑ Raise NCR</span>
+                <span class="bt solid" style="margin-left:auto">✓ Approve QC → unlock Dispatch</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="card">
+            <div class="ch"><h4>Checklist</h4><span class="cnt">5/6</span><span class="right">83%</span></div>
+            <div class="cb">
+              <ul class="chk">
+                <li><span class="box on"></span><div><div class="txt done">Visual weld inspection done <span class="req">*</span></div><div class="who">✓ S. Pillai · 15 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">NDT completed &amp; accepted <span class="req">*</span></div><div class="who">✓ S. Pillai · 15 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Surface prep Sa 2.5 verified <span class="req">*</span></div><div class="who">✓ S. Pillai · 16 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">DFT readings within spec (all zones) <span class="req">*</span></div><div class="who">✓ S. Pillai · 16 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Final dimensional report issued <span class="req">*</span></div><div class="who">✓ S. Pillai · 16 Jun</div></div></li>
+                <li><span class="box"></span><div class="txt">QC certificate signed &amp; TPI released <span class="req">*</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="card">
+            <div class="ch"><h4>Documents</h4><span class="cnt">4</span></div>
+            <div class="cb">
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">ndt-report-UT.pdf</div><div class="dm">1.3 MB · 15 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">dft-readings.pdf</div><div class="dm">1.0 MB · 16 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">dimensional-DR018.pdf</div><div class="dm">760 KB · 16 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">qc-certificate.pdf</div><div class="dm">draft · 16 Jun</div></div></div>
+              <div class="drop" style="margin-top:10px"><div class="ic">⬆</div>NDT / DFT / Cert ▾</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Inspection &amp; TPI</h4></div>
+            <div class="cb info">
+              <div class="row"><span class="k">ITP</span><span class="v">ITP-2026-018</span></div>
+              <div class="row"><span class="k">TPI agency</span><span class="v">Lloyd's</span></div>
+              <div class="row"><span class="k">Open NCRs</span><span class="v">0</span></div>
+              <div class="row"><span class="k">Closed NCRs</span><span class="v">1 (NCR-07)</span></div>
+              <div class="row"><span class="k">QC Head</span><span class="v">S. Pillai</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno">
+      <div class="at">Why these elements — real-world mapping</div>
+      <ul>
+        <li><b>NDT log with method + extent + result</b> — QC on welded steel is driven by NDT (UT/MPI/DPI/RT). Each weld's method, coverage % and accept/reject must be recorded for the data book.</li>
+        <li><b>NCR handling</b> — a rejected weld raises a Non-Conformance Report, gets repaired, and is re-inspected. The UI must show open vs closed NCRs; a job can't dispatch with open NCRs.</li>
+        <li><b>DFT table with surface-prep grade</b> — painting acceptance = blast standard (Sa 2.5) + DFT per zone vs spec range. Kept from current build, extended with prep column.</li>
+        <li><b>ITP / TPI sign-off</b> — client or third-party inspector witnesses hold points; "Approve QC" is what unlocks Dispatch.</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       PHASE 5 — DISPATCH
+       ============================================================ -->
+  <section class="phase">
+    <span class="phase-tag">Phase 05 / 05 · Dispatch</span>
+    <h2>Dispatch — Reconcile, Pack &amp; Deliver</h2>
+    <p class="sub">Owner: Dispatch In-charge · Closes the project. Final gate: piece count must reconcile against the BOM.</p>
+    <div class="realflow"><b>Real shop flow:</b> QC released → <b>reconcile piece count vs BOM</b> → weigh (gross/net) → mark &amp; pack per erection sequence → raise <b>delivery note / e-way bill</b> → load (photos) → transport → capture <b>POD (proof of delivery)</b> signature.</div>
+
+    <div class="screen">
+      <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">/projects/PROJ-2026-0018/phase/dispatch</span></div>
+      <div class="appbar">
+        <div class="crumb">Home / Projects / <b>PROJ-2026-0018</b> / Dispatch</div>
+        <span class="pill role">Role: Dispatch In-charge</span>
+        <span class="pill edit">Edit</span>
+      </div>
+      <div class="stepper">
+        <div class="st done"><div class="c">✓</div><div class="lbl">Cutting</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">Beamline</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">Fit-Up</div></div>
+        <div class="bar done"></div>
+        <div class="st done"><div class="c">✓</div><div class="lbl">QC</div></div>
+        <div class="bar done"></div>
+        <div class="st active"><div class="c">5</div><div class="lbl">Dispatch</div></div>
+      </div>
+
+      <div class="body">
+        <div class="main">
+          <div class="hero">
+            <div class="num">5</div>
+            <div class="meta">
+              <div class="title-row"><h3>Dispatch</h3><span class="badge prog">● In Progress</span><span class="mono-c" style="font-size:11px;color:var(--ink3)">Phase 5 of 5</span></div>
+              <div class="facts">Structural Beams — Bay 4 · DN-0042 · Deliver 18 Jun 2026</div>
+            </div>
+            <div class="pct"><div class="big">50%</div><div class="sm">2/4 tasks</div></div>
+          </div>
+
+          <!-- PIECE RECONCILIATION -->
+          <div class="card">
+            <div class="ch"><h4>Piece Reconciliation vs BOM</h4><span class="cnt">30 pcs</span><span class="right">Gross 4.9 T · Net 4.6 T</span></div>
+            <div class="cb" style="padding:0">
+              <table>
+                <thead><tr><th>Part Mark</th><th>BOM Qty</th><th>QC-Passed</th><th>Loaded</th><th>Match</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">B-101</td><td class="mono">4</td><td class="mono">4</td><td class="mono">4</td><td><span class="tag ok">✓</span></td></tr>
+                  <tr><td class="mono">B-102</td><td class="mono">2</td><td class="mono">2</td><td class="mono">2</td><td><span class="tag ok">✓</span></td></tr>
+                  <tr><td class="mono">ST-03</td><td class="mono">4</td><td class="mono">4</td><td class="mono">3</td><td><span class="tag wait">1 pending</span></td></tr>
+                  <tr><td class="mono">CL-05</td><td class="mono">16</td><td class="mono">16</td><td class="mono">16</td><td><span class="tag ok">✓</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="card">
+            <div class="ch"><h4>Checklist</h4><span class="cnt">2/4</span><span class="right">50%</span></div>
+            <div class="cb">
+              <ul class="chk">
+                <li><span class="box on"></span><div><div class="txt done">QC sign-off &amp; certificate received <span class="req">*</span></div><div class="who">✓ R. Gupta · 16 Jun</div></div></li>
+                <li><span class="box on"></span><div><div class="txt done">Delivery note / e-way bill prepared <span class="req">*</span></div><div class="who">✓ R. Gupta · 17 Jun</div></div></li>
+                <li><span class="box"></span><div class="txt">All pieces loaded &amp; reconciled <span class="req">*</span></div></li>
+                <li><span class="box"></span><div class="txt">Client notified of dispatch</div></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- DELIVERY + FINAL ACTION -->
+          <div class="card">
+            <div class="ch"><h4>Delivery Details</h4></div>
+            <div class="cb">
+              <div class="fields three">
+                <div class="fld"><label>Delivery Note</label><div class="inp">DN-0042</div></div>
+                <div class="fld"><label>E-Way Bill</label><div class="inp">EWB-88213047</div></div>
+                <div class="fld"><label>Vehicle No.</label><div class="inp">TN-35-AB-1234</div></div>
+                <div class="fld"><label>Driver</label><div class="inp">Mohan Das</div></div>
+                <div class="fld"><label>Delivery Date</label><div class="inp">18 Jun 2026</div></div>
+                <div class="fld"><label>Destination</label><div class="inp">Acme Site · Bay 4</div></div>
+              </div>
+              <div class="banner" style="margin:14px 0 0">⚑ Loading photos + POD signature captured on delivery confirm.</div>
+              <div class="btns">
+                <span class="bt ghost">⚑ Raise Dispute</span>
+                <span class="bt dis" style="margin-left:auto">🚚 Mark Dispatched <span style="font-size:9px">(1 pc pending)</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="card">
+            <div class="ch"><h4>Documents</h4><span class="cnt">3</span></div>
+            <div class="cb">
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">delivery-note-DN0042.pdf</div><div class="dm">450 KB · 17 Jun</div></div></div>
+              <div class="doc"><div class="ft">PDF</div><div><div class="dn">eway-bill.pdf</div><div class="dm">210 KB · 17 Jun</div></div></div>
+              <div class="doc"><div class="ft">IMG</div><div><div class="dn">loading-photos.jpg</div><div class="dm">2.1 MB · 17 Jun</div></div></div>
+              <div class="drop" style="margin-top:10px"><div class="ic">⬆</div>Note / Invoice / POD ▾</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Consignment</h4></div>
+            <div class="cb info">
+              <div class="row"><span class="k">Pieces</span><span class="v">29 / 30</span></div>
+              <div class="row"><span class="k">Gross wt.</span><span class="v">4.9 T</span></div>
+              <div class="row"><span class="k">Packages</span><span class="v">3 bundles</span></div>
+              <div class="row"><span class="k">Transport</span><span class="v">Road · FTL</span></div>
+              <div class="row"><span class="k">POD</span><span class="v">Pending</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno">
+      <div class="at">Why these elements — real-world mapping</div>
+      <ul>
+        <li><b>Piece reconciliation vs BOM</b> — the real dispatch gate is "does loaded count = QC-passed count = BOM?". A short-shipment must be caught here, so the "Mark Dispatched" button stays disabled until every mark reconciles.</li>
+        <li><b>E-way bill + delivery note</b> — statutory for road movement of goods (India context). Both are captured, not just an internal note.</li>
+        <li><b>Weight &amp; package count</b> — transporter and client both need gross/net weight and bundle count.</li>
+        <li><b>POD (proof of delivery)</b> — the project only truly closes when the client signs receipt; POD status is tracked to 100%.</li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ================= CROSS-CUTTING NOTES ================= -->
+  <div class="subhead">Patterns shared across all 5 phases</div>
+  <div class="anno" style="border-color:var(--ink);background:var(--white)">
+    <div class="at" style="color:var(--ink)">Consistent shell — what stays the same every phase</div>
+    <ul style="color:var(--ink)">
+      <li><b>Role dropdown + access pill</b> in the top bar — the same 8 roles drive edit vs view; owners differ per phase (PM → PM → QI → QH → DI).</li>
+      <li><b>5-step stepper</b> with lock icons on future phases — a phase can't start until its predecessor is Approved (sequential gating).</li>
+      <li><b>Hero card</b>: phase number, live status, project facts, completion %, and the primary action (Complete / Approve / Dispatch).</li>
+      <li><b>Left = work</b> (phase-specific tables + checklist + comments), <b>Right = documents + info</b>. Every phase carries traceability docs forward.</li>
+      <li><b>Required (*) checklist gates</b> — the primary action stays disabled until all required items are checked, mirroring shop-floor sign-off discipline.</li>
+      <li><b>Comment + Dispute</b> thread on every phase — non-owners (e.g. GM, Planning) can watch, comment, and escalate without editing.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
